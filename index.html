@@ -3,33 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>佛乘宗修行功課表 v2.3</title>
+    <title>佛乘宗修行功課表 v2.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* A4 強制單頁設定 */
+        /* A4 強制單頁與放大設定 */
         @media print {
-            html, body { height: 100%; margin: 0 !important; padding: 0 !important; overflow: hidden; }
+            html, body { height: 100%; margin: 0 !important; padding: 0 !important; overflow: hidden; background: white; }
             #mainPage, .no-print { display: none !important; }
             #reportPage { display: block !important; position: relative; width: 100%; height: 100%; }
             #printArea { 
-                position: absolute; 
-                left: 50%; 
-                transform: translateX(-50%); 
-                top: 0.8cm; /* 標題距離頂部 */
-                width: 18.5cm; /* 左右各留 1.25cm 邊距 */
-                height: 27.5cm; /* 低於 A4 的 29.7cm，確保不溢出 */
+                position: absolute; left: 50%; transform: translateX(-50%); 
+                top: 0.5cm; width: 19cm; height: 28.5cm; /* 擴展寬度與高度 */
                 margin: 0; padding: 0;
-                page-break-after: avoid;
-                page-break-before: avoid;
             }
             @page { size: A4; margin: 0; }
-            table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1.5px solid black !important; }
-            td, th { border: 1.1px solid black !important; font-size: 12.5px !important; height: 21.5px !important; line-height: 1; }
-            input { border: none !important; background: transparent !important; }
+            h2 { font-size: 24px !important; margin-bottom: 15px !important; }
+            table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 2px solid black !important; }
+            td, th { border: 1.2px solid black !important; font-size: 14px !important; height: 23.5px !important; line-height: 1.2; }
+            input { border: none !important; background: transparent !important; font-size: 14px !important; }
+            .memo-area { position: absolute; bottom: 0; width: 100%; font-size: 11px !important; }
         }
-        /* 螢幕顯示 */
+        /* 螢幕顯示樣式 */
         table td, table th { border: 1px solid #000; text-align: center; }
-        .cell-input { width: 100%; height: 100%; border: none; outline: none; padding: 0 4px; font-size: 14px; background: transparent; }
+        .cell-input { width: 100%; height: 100%; border: none; outline: none; padding: 0 4px; font-size: 16px; background: transparent; }
         .drawer-closed { transform: translateY(100%); transition: transform 0.3s ease; }
     </style>
 </head>
@@ -57,7 +53,7 @@
                 <button onclick="showCategory('動禪')" class="py-4 bg-gray-50 rounded-xl border font-bold">動禪歷史</button>
             </div>
             <button onclick="openReport()" class="w-full py-5 bg-slate-800 text-white rounded-2xl font-bold shadow-xl">開啟 A4 完整功課表</button>
-            <div class="mt-12"><button onclick="archiveNotes()" class="text-xs text-gray-400 underline italic">封存並清空本月心得</button></div>
+            <div class="mt-12"><button onclick="archiveAllData()" class="text-xs text-gray-400 underline italic">封存並清空本月資料</button></div>
         </div>
         <div id="detailContent" class="hidden">
             <button onclick="backToDrawer()" class="text-indigo-600 mb-6 font-bold">← 返回</button>
@@ -69,45 +65,44 @@
     <div id="reportPage" class="hidden fixed inset-0 bg-white z-[60] overflow-y-auto">
         <div class="no-print flex justify-between items-center p-4 bg-gray-800 text-white sticky top-0">
             <button onclick="closeReport()" class="px-4 py-2 bg-gray-600 rounded text-sm">關閉</button>
-            <span class="text-xs font-light">預覽若顯示2頁，請在列印設定勾選「符合頁面」</span>
             <button onclick="window.print()" class="px-6 py-2 bg-blue-500 rounded font-bold">確認列印</button>
         </div>
         
         <div id="printArea">
-            <h2 class="text-center text-xl font-bold mb-4">佛乘宗門人、學員修行功課</h2>
+            <h2 class="text-center font-bold">佛乘宗門人、學員修行功課</h2>
             
-            <div class="flex text-[13px] mb-2 items-baseline w-full font-bold px-1">
+            <div class="flex text-[15px] mb-3 items-baseline w-full font-bold px-1">
                 <div class="w-[20%]"><span id="currentYM"></span></div>
-                <div class="w-[15%]">組別：<input type="text" id="groupName" class="w-8 border-b border-black text-center" oninput="saveInfo('group', this.value)"></div>
-                <div class="w-[30%]">法號：<input type="text" id="dharmaName" class="w-20 border-b border-black" oninput="saveInfo('dharma', this.value)"></div>
-                <div class="w-[35%] text-right">姓名：<input type="text" id="userName" class="w-20 border-b border-black" oninput="saveInfo('name', this.value)"></div>
+                <div class="w-[15%]">組別：<input type="text" id="groupName" class="w-10 border-b border-black text-center" oninput="saveInfo('group', this.value)"></div>
+                <div class="w-[30%] text-center">法號：<input type="text" id="dharmaName" class="w-24 border-b border-black text-center" oninput="saveInfo('dharma', this.value)"></div>
+                <div class="w-[35%] text-right">姓名：<input type="text" id="userName" class="w-24 border-b border-black text-center" oninput="saveInfo('name', this.value)"></div>
             </div>
 
             <table class="w-full">
                 <thead>
-                    <tr class="bg-gray-50 text-[10.5px]">
+                    <tr class="bg-gray-50 text-[12px]">
                         <th rowspan="2" width="8%">日期</th><th rowspan="2" width="8%">星期</th>
                         <th width="14%">30000聲</th><th width="14%">120分</th><th width="14%">60分</th><th width="14%">60分</th><th rowspan="2" width="28%">心 得</th>
                     </tr>
-                    <tr class="bg-gray-50 text-[10.5px]"><th>念佛(聲)</th><th>打坐(分)</th><th>拜懺(分)</th><th>動禪(分)</th></tr>
+                    <tr class="bg-gray-50 text-[12px]"><th>念佛(聲)</th><th>打坐(分)</th><th>拜懺(分)</th><th>動禪(分)</th></tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
-                <tbody class="text-[12.5px] font-bold">
+                <tbody class="text-[14px] font-bold">
                     <tr>
-                        <td colspan="2" class="h-8 text-[11px]">日平均</td>
+                        <td colspan="2" class="h-10 text-[12px]">日平均</td>
                         <td id="avg-念佛"></td><td id="avg-打坐"></td><td id="avg-拜懺"></td><td id="avg-動禪"></td>
-                        <td class="text-center text-[10px] leading-tight">平均達成率% (a+b+c+d)/4</td>
+                        <td class="text-center text-[11px] leading-tight">平均達成率% (a+b+c+d)/4</td>
                     </tr>
                     <tr>
-                        <td colspan="2" class="h-8 text-[11px]">達成率%</td>
+                        <td colspan="2" class="h-10 text-[12px]">達成率%</td>
                         <td id="rate-念佛"></td><td id="rate-打坐"></td><td id="rate-拜懺"></td><td id="rate-動禪"></td>
-                        <td id="totalAvg" class="text-lg">0%</td>
+                        <td id="totalAvg" class="text-xl">0%</td>
                     </tr>
-                    <tr><td colspan="2" class="h-8 text-[11px]">講師核閱</td><td colspan="5"></td></tr>
+                    <tr><td colspan="2" class="h-10 text-[12px]">講師核閱</td><td colspan="5"></td></tr>
                 </tbody>
             </table>
             
-            <div class="text-[10px] mt-2 flex justify-between px-1 font-medium">
+            <div class="memo-area text-[11px] flex justify-between px-1 font-medium mt-2">
                 <span>備註：1. 心得欄可記錄去習氣, 修德大之情形。</span>
                 <span>2. 每日功課建議：三禪一懺為主, 配合六大心法持誦</span>
             </div>
@@ -143,6 +138,15 @@
                 const sum = db.filter(i => i.date === today && i.category === c).reduce((a, b) => a + b.value, 0);
                 return `<div class="flex flex-col"><span class="text-gray-500 text-xs">${c}</span><span class="text-xl font-bold text-indigo-700">${sum}</span></div>`;
             }).join('');
+        }
+        function archiveAllData() {
+            if(confirm("確定要封存並清空本月『所有資料』嗎？\n(包含修行紀錄與心得)")) {
+                localStorage.setItem('practiceDB', JSON.stringify([]));
+                localStorage.setItem('noteDB', JSON.stringify({}));
+                db = []; noteDB = {};
+                alert("本月資料已清空。");
+                location.reload();
+            }
         }
         function toggleDrawer() { document.getElementById('drawer').classList.toggle('drawer-closed'); }
         function openReport() { renderTable(); document.getElementById('reportPage').classList.remove('hidden'); }
@@ -187,15 +191,7 @@
             });
             document.getElementById('totalAvg').innerText = Math.round(totalRateSum / 4) + "%";
         }
-
         function saveNote(date, val) { noteDB[date] = val; localStorage.setItem('noteDB', JSON.stringify(noteDB)); }
-        function archiveNotes() {
-            if(confirm("確定要將本月心得封存嗎？表格內容將會清空。")) {
-                localStorage.setItem('noteDB', JSON.stringify({}));
-                alert("已封存。");
-                location.reload();
-            }
-        }
     </script>
 </body>
 </html>
