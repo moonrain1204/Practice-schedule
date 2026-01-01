@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>佛乘宗修行功課表 v0.3</title>
+    <title>佛乘宗修行功課表 v0.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
@@ -22,17 +22,20 @@
 <body class="bg-gray-100 min-h-screen">
 
     <div id="mainPage" class="p-6 max-w-md mx-auto relative min-h-screen pb-20">
-        <h1 class="text-2xl font-bold text-center mb-8 text-indigo-800">修行功課隨手記</h1>
+        <h1 class="text-3xl font-bold text-center mt-10 mb-12 text-indigo-800">佛乘宗修行功課表</h1>
+        
         <div class="grid grid-cols-2 gap-4">
             <button onclick="openInput('念佛', '聲')" class="h-32 bg-orange-500 text-white rounded-2xl shadow-lg text-xl font-bold active:scale-95 transition-transform">念佛</button>
             <button onclick="openInput('打坐', '分鐘')" class="h-32 bg-blue-500 text-white rounded-2xl shadow-lg text-xl font-bold active:scale-95 transition-transform">打坐</button>
             <button onclick="openInput('拜懺', '分鐘')" class="h-32 bg-green-600 text-white rounded-2xl shadow-lg text-xl font-bold active:scale-95 transition-transform">拜懺</button>
             <button onclick="openInput('動禪', '分鐘')" class="h-32 bg-purple-500 text-white rounded-2xl shadow-lg text-xl font-bold active:scale-95 transition-transform">動禪</button>
         </div>
+        
         <div class="mt-8 p-4 bg-white rounded-xl shadow">
             <div id="todaySummary" class="grid grid-cols-2 gap-2 text-sm text-gray-600"></div>
         </div>
-        <div class="absolute bottom-6 left-6 text-gray-400 text-xs font-mono">v0.3</div>
+        
+        <div class="absolute bottom-6 left-6 text-gray-400 text-xs font-mono">v0.4</div>
     </div>
 
     <div id="inputModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[70]">
