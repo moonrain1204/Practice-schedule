@@ -3,56 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>佛乘宗修行功課表 v2.0</title>
+    <title>佛乘宗修行功課表 v2.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* A4 列印核心：強制單頁並加大字體 */
+        /* A4 列印核心設定 */
         @media print {
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
             #printArea { 
                 position: absolute; left: 0; top: 0; width: 100%; 
-                height: 95vh; /* 縮小高度比例確保不產生第二頁 */
-                margin: 0; padding: 0; 
+                margin: 0; padding: 1.5cm 0 0 0; /* 下移 1.5cm 避免切表頭 */
             }
-            @page { size: A4; margin: 0.8cm; }
+            @page { size: A4; margin: 0; } /* 消除瀏覽器預設邊距 */
             table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1.5px solid black !important; }
-            td, th { border: 1.2px solid black !important; font-size: 13px !important; height: 26px !important; } /* 加大字體與行高 */
+            td, th { border: 1.2px solid black !important; font-size: 13px !important; height: 24px !important; } /* 微縮行高確保單頁 */
             .no-print { display: none !important; }
             input { border: none !important; background: transparent !important; outline: none; }
         }
-        /* 螢幕顯示樣式 */
+        /* 螢幕顯示 */
         table td, table th { border: 1px solid #000; text-align: center; }
         .cell-input { width: 100%; height: 100%; border: none; outline: none; padding: 0 4px; font-size: 14px; background: transparent; }
         .drawer-closed { transform: translateY(100%); }
-        .drawer { transition: transform 0.3s ease-in-out; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
     <div id="mainPage" class="p-6 max-w-md mx-auto relative min-h-screen pb-24 no-print">
         <h1 class="text-2xl font-bold text-center mt-8 mb-10 text-slate-800">佛乘宗修行功課表</h1>
-        
         <div class="grid grid-cols-2 gap-4">
             <button onclick="openInput('念佛', '聲')" class="h-28 bg-orange-500 text-white rounded-2xl shadow-lg text-xl font-bold active:scale-95 transition-transform">念佛</button>
             <button onclick="openInput('打坐', '分鐘')" class="h-28 bg-blue-500 text-white rounded-2xl shadow-lg text-xl font-bold active:scale-95 transition-transform">打坐</button>
             <button onclick="openInput('拜懺', '分鐘')" class="h-28 bg-green-600 text-white rounded-2xl shadow-lg text-xl font-bold active:scale-95 transition-transform">拜懺</button>
             <button onclick="openInput('動禪', '分鐘')" class="h-28 bg-purple-500 text-white rounded-2xl shadow-lg text-xl font-bold active:scale-95 transition-transform">動禪</button>
         </div>
-
-        <div id="todaySummary" class="mt-10 p-6 bg-white rounded-2xl shadow-sm border border-gray-100 grid grid-cols-2 gap-4 text-center">
-            </div>
-
-        <div class="absolute bottom-6 left-6 text-gray-400 text-[10px]">v2.0 | 單頁列印與版面優化</div>
+        <div id="todaySummary" class="mt-10 p-6 bg-white rounded-2xl shadow-sm border border-gray-100 grid grid-cols-2 gap-4 text-center"></div>
+        <div class="absolute bottom-6 left-6 text-gray-400 text-[10px]">v2.1 | 單頁鎖定 & 表頭下移</div>
         <button onclick="toggleDrawer()" class="fixed bottom-8 right-8 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl text-3xl z-40">☰</button>
     </div>
 
-    <div id="drawer" class="drawer drawer-closed fixed inset-0 bg-white z-50 overflow-y-auto p-6 no-print">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="text-xl font-bold">紀錄與管理</h2>
-            <button onclick="toggleDrawer()" class="p-2 text-gray-400 text-2xl">✕</button>
-        </div>
-        
+    <div id="drawer" class="fixed inset-0 bg-white z-50 overflow-y-auto p-6 no-print transition-transform drawer-closed">
+        <div class="flex justify-between items-center mb-8"><h2 class="text-xl font-bold">紀錄管理</h2><button onclick="toggleDrawer()" class="text-2xl text-gray-400">✕</button></div>
         <div id="drawerContent" class="space-y-6">
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="showCategory('念佛')" class="py-4 bg-gray-50 rounded-xl border font-bold">念佛歷史</button>
@@ -60,16 +50,11 @@
                 <button onclick="showCategory('拜懺')" class="py-4 bg-gray-50 rounded-xl border font-bold">拜懺歷史</button>
                 <button onclick="showCategory('動禪')" class="py-4 bg-gray-50 rounded-xl border font-bold">動禪歷史</button>
             </div>
-            
-            <button onclick="openReport()" class="w-full py-5 bg-slate-800 text-white rounded-2xl font-bold shadow-xl text-lg">開啟 A4 完整功課表</button>
-            
-            <div class="mt-12 pt-8 border-t text-center">
-                <button onclick="archiveNotes()" class="text-xs text-gray-400 underline italic">封存並清空本月心得資料</button>
-            </div>
+            <button onclick="openReport()" class="w-full py-5 bg-slate-800 text-white rounded-2xl font-bold shadow-xl">開啟 A4 完整功課表</button>
+            <div class="mt-12 text-center"><button onclick="archiveNotes()" class="text-xs text-gray-400 underline italic">封存並清空本月心得</button></div>
         </div>
-
         <div id="detailContent" class="hidden">
-            <button onclick="backToDrawer()" class="text-indigo-600 mb-6 font-bold flex items-center">← 返回管理</button>
+            <button onclick="backToDrawer()" class="text-indigo-600 mb-6 font-bold">← 返回</button>
             <h3 id="detailTitle" class="text-lg font-bold mb-4"></h3>
             <ul id="historyList" class="divide-y border-t"></ul>
         </div>
@@ -78,18 +63,17 @@
     <div id="reportPage" class="hidden fixed inset-0 bg-white z-[60] overflow-y-auto">
         <div class="no-print flex justify-between items-center p-4 bg-gray-800 text-white sticky top-0">
             <button onclick="closeReport()" class="px-4 py-2 bg-gray-600 rounded">關閉</button>
-            <span class="font-bold text-sm">單頁 A4 預覽 (建議使用 Chrome)</span>
-            <button onclick="window.print()" class="px-6 py-2 bg-blue-500 rounded font-bold">列印/存 PDF</button>
+            <button onclick="window.print()" class="px-6 py-2 bg-blue-500 rounded font-bold shadow">確認列印 / 存 PDF</button>
         </div>
         
-        <div id="printArea" class="mx-auto p-4 bg-white" style="max-width: 800px; color:black; font-family: 'Noto Sans TC', sans-serif;">
-            <h2 class="text-center text-2xl font-bold mb-4">佛乘宗門人、學員修行功課</h2>
+        <div id="printArea" class="mx-auto bg-white px-8" style="max-width: 800px; color:black;">
+            <h2 class="text-center text-2xl font-bold mb-6">佛乘宗門人、學員修行功課</h2>
             
-            <div class="flex text-[14px] mb-3 px-1 items-baseline w-full font-bold">
-                <div class="w-[20%]"><span id="currentYM"></span></div>
-                <div class="w-[18%]">組別：<input type="text" id="groupName" class="w-10 border-b border-black text-center" oninput="saveInfo('group', this.value)"></div>
-                <div class="w-[31%]">法號：<input type="text" id="dharmaName" class="w-28 border-b border-black" oninput="saveInfo('dharma', this.value)"></div>
-                <div class="w-[31%] text-right">姓名：<input type="text" id="userName" class="w-28 border-b border-black" oninput="saveInfo('name', this.value)"></div>
+            <div class="flex text-[14px] mb-4 items-baseline w-full font-bold px-1">
+                <div class="w-[25%]"><span id="currentYM"></span></div>
+                <div class="w-[15%]">組別：<input type="text" id="groupName" class="w-8 border-b border-black text-center" oninput="saveInfo('group', this.value)"></div>
+                <div class="w-[25%]">法號：<input type="text" id="dharmaName" class="w-20 border-b border-black" oninput="saveInfo('dharma', this.value)"></div>
+                <div class="w-[35%] text-right">姓名：<input type="text" id="userName" class="w-20 border-b border-black" oninput="saveInfo('name', this.value)"></div>
             </div>
 
             <table class="w-full">
@@ -110,13 +94,13 @@
                     <tr>
                         <td colspan="2" class="h-10">達成率%</td>
                         <td id="rate-念佛"></td><td id="rate-打坐"></td><td id="rate-拜懺"></td><td id="rate-動禪"></td>
-                        <td id="totalAvg" class="text-xl font-black">0%</td>
+                        <td id="totalAvg" class="text-xl">0%</td>
                     </tr>
                     <tr><td colspan="2" class="h-12">講師核閱</td><td colspan="5"></td></tr>
                 </tbody>
             </table>
             
-            <div class="text-[11px] mt-3 flex justify-between px-1 font-medium">
+            <div class="text-[11px] mt-4 flex justify-between px-1">
                 <span>備註：1. 心得欄可記錄去習氣, 修德大之情形。</span>
                 <span>2. 每日功課建議：三禪一懺為主, 配合六大心法持誦</span>
             </div>
