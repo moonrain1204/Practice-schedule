@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>佛乘宗修行功課表 v1.5</title>
+    <title>佛乘宗修行功課表 v1.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
-            @page { size: A4; margin: 1cm; }
-            body { background: white; }
+            @page { size: A4; margin: 0.8cm; }
+            body { background: white; -webkit-print-color-adjust: exact; }
             .no-print { display: none !important; }
             #reportPage { display: block !important; position: static; padding: 0; }
-            table { width: 100%; table-layout: fixed; }
-            td, th { border: 1px solid black !important; font-size: 10px !important; height: 22px !important; }
-            .print-container { width: 100% !important; max-width: none !important; }
+            table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+            td, th { border: 1.5px solid black !important; font-size: 11px !important; height: 25px !important; }
+            .cell-input { border: none !important; }
         }
         table td, table th { border: 1px solid #000; text-align: center; }
-        .cell-input { width: 100%; height: 100%; border: none; outline: none; padding: 0 4px; font-size: 11px; background: transparent; }
+        .cell-input { width: 100%; height: 100%; border: none; outline: none; padding: 0 4px; font-size: 12px; background: transparent; }
         .drawer-closed { transform: translateY(100%); }
+        .drawer { transition: transform 0.3s ease-in-out; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -31,23 +32,51 @@
             <button onclick="openInput('動禪', '分鐘')" class="h-28 bg-purple-500 text-white rounded-2xl shadow-md text-lg font-bold">動禪</button>
         </div>
         <div id="todaySummary" class="mt-8 p-4 bg-white rounded-xl shadow-sm border grid grid-cols-2 gap-2 text-sm text-center"></div>
-        <div class="absolute bottom-6 left-6 text-gray-400 text-[10px]">v1.5 | 僅存於手機</div>
+        <div class="absolute bottom-6 left-6 text-gray-400 text-[10px]">v1.6 | 僅存於手機</div>
         <button onclick="toggleDrawer()" class="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg text-2xl z-40">☰</button>
+    </div>
+
+    <div id="drawer" class="drawer drawer-closed fixed inset-0 bg-white z-50 overflow-y-auto p-6">
+        <div class="flex justify-between items-center mb-6 text-xl font-bold">歷史管理 <button onclick="toggleDrawer()" class="text-2xl">✕</button></div>
+        
+        <div id="drawerContent" class="space-y-6">
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="showCategory('念佛')" class="p-4 bg-gray-50 rounded-xl border font-bold">念佛記錄</button>
+                <button onclick="showCategory('打坐')" class="p-4 bg-gray-50 rounded-xl border font-bold">打坐記錄</button>
+                <button onclick="showCategory('拜懺')" class="p-4 bg-gray-50 rounded-xl border font-bold">拜懺記錄</button>
+                <button onclick="showCategory('動禪')" class="p-4 bg-gray-50 rounded-xl border font-bold">動禪記錄</button>
+            </div>
+
+            <div class="p-4 bg-orange-50 rounded-xl border border-orange-100">
+                <h4 class="font-bold text-orange-800 mb-1">本月心得管理</h4>
+                <p class="text-xs text-orange-600 mb-3">月底時可將心得封存，以清空表格迎接新月份。</p>
+                <button onclick="archiveNotes()" class="w-full py-3 bg-orange-500 text-white rounded-lg font-bold">封存並清空本月心得</button>
+            </div>
+            
+            <button onclick="openReport()" class="w-full py-4 bg-slate-800 text-white rounded-xl font-bold shadow-lg">開啟 A4 完整功課表</button>
+        </div>
+
+        <div id="detailContent" class="hidden">
+            <button onclick="backToDrawer()" class="text-indigo-600 mb-4 font-bold">← 返回</button>
+            <h3 id="detailTitle" class="text-lg font-bold mb-4"></h3>
+            <ul id="historyList" class="divide-y"></ul>
+        </div>
     </div>
 
     <div id="reportPage" class="hidden fixed inset-0 bg-white z-[60] overflow-y-auto p-4">
         <div class="no-print flex justify-between p-4 bg-gray-100 mb-4 rounded-lg">
-            <button onclick="closeReport()" class="px-6 py-2 bg-gray-400 text-white rounded font-bold">關閉</button>
-            <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white rounded font-bold shadow">確認列印 (A4)</button>
+            <button onclick="closeReport()" class="px-6 py-2 bg-gray-400 text-white rounded">關閉</button>
+            <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white rounded font-bold">列印 A4</button>
         </div>
         
-        <div id="printArea" class="print-container bg-white mx-auto p-2" style="max-width: 750px; color:black;">
-            <h2 class="text-center text-xl font-bold mb-3">佛乘宗門人、學員修行功課</h2>
+        <div id="printArea" class="mx-auto p-2" style="max-width: 800px; color:black;">
+            <h2 class="text-center text-xl font-bold mb-4 italic">佛乘宗門人、學員修行功課</h2>
             
-            <div class="flex text-[12px] mb-2 px-1">
-                <div class="w-1/4"><span id="currentYM" class="font-bold mr-2"></span>組別：<input type="text" class="w-10 border-b border-black text-center" value="三"></div>
-                <div class="w-1/3">法號：<input type="text" id="dharmaName" class="w-28 border-b border-black" oninput="saveInfo('dharma', this.value)"></div>
-                <div class="flex-1">姓名：<input type="text" id="userName" class="w-28 border-b border-black" oninput="saveInfo('name', this.value)"></div>
+            <div class="flex text-[13px] mb-2 px-1 items-baseline">
+                <div class="flex-none font-bold mr-4"><span id="currentYM"></span></div>
+                <div class="flex-none mr-4">組別：<input type="text" class="w-8 border-b border-black text-center" value="三"></div>
+                <div class="flex-none mr-4">法號：<input type="text" id="dharmaName" class="w-24 border-b border-black" oninput="saveInfo('dharma', this.value)"></div>
+                <div class="flex-1">姓名：<input type="text" id="userName" class="w-24 border-b border-black" oninput="saveInfo('name', this.value)"></div>
             </div>
 
             <table class="w-full border-collapse border-[1.5px] border-black">
@@ -61,28 +90,23 @@
                 <tbody id="tableBody"></tbody>
                 <tbody class="text-[10px] font-bold">
                     <tr>
-                        <td colspan="2" class="h-6">日平均</td>
+                        <td colspan="2" class="h-7">日平均</td>
                         <td id="avg-念佛"></td><td id="avg-打坐"></td><td id="avg-拜懺"></td><td id="avg-動禪"></td>
-                        <td class="text-left px-2 border-b-0">平均達成率% (a+b+c+d)/4</td>
+                        <td class="text-center">平均達成率% (a+b+c+d)/4</td>
                     </tr>
                     <tr>
-                        <td colspan="2" class="h-6">達成率%</td>
-                        <td id="rate-念佛">0%</td><td id="rate-打坐">0%</td><td id="rate-拜懺">0%</td><td id="rate-動禪">0%</td>
-                        <td id="totalAvg" class="text-lg border-t-0">0%</td>
+                        <td colspan="2" class="h-7">達成率%</td>
+                        <td id="rate-念佛"></td><td id="rate-打坐"></td><td id="rate-拜懺"></td><td id="rate-動禪"></td>
+                        <td id="totalAvg" class="text-lg">0%</td>
                     </tr>
-                    <tr><td colspan="2" class="h-6">講師核閱</td><td colspan="4"></td><td></td></tr>
+                    <tr><td colspan="2" class="h-7">講師核閱</td><td colspan="4"></td><td></td></tr>
                 </tbody>
             </table>
-            <div class="text-[9px] mt-2 flex justify-between px-1">
-                <span>備註：1.心得欄可記錄去習氣,修德大之情形。</span>
-                <span>2.每日功課建議：三禪一懺為主,配合六大心法持誦</span>
+            <div class="text-[10px] mt-2 flex justify-between">
+                <span>備註：1. 心得欄可記錄去習氣, 修德大之情形。</span>
+                <span>2. 每日功課建議：三禪一懺為主, 配合六大心法持誦</span>
             </div>
         </div>
-    </div>
-
-    <div id="drawer" class="fixed inset-0 bg-white z-50 overflow-y-auto p-6 transition-transform drawer-closed">
-         <div class="flex justify-between items-center mb-6 text-xl font-bold">歷史管理 <button onclick="toggleDrawer()" class="text-2xl">✕</button></div>
-         <button onclick="openReport()" class="w-full py-4 bg-slate-800 text-white rounded-xl font-bold">開啟 A4 完整功課表</button>
     </div>
 
     <script>
@@ -117,7 +141,17 @@
         function toggleDrawer() { document.getElementById('drawer').classList.toggle('drawer-closed'); }
         function openReport() { renderTable(); document.getElementById('reportPage').classList.remove('hidden'); }
         function closeReport() { document.getElementById('reportPage').classList.add('hidden'); }
-        
+        function backToDrawer() { document.getElementById('drawerContent').classList.remove('hidden'); document.getElementById('detailContent').classList.add('hidden'); }
+
+        function showCategory(cat) {
+            document.getElementById('drawerContent').classList.add('hidden');
+            document.getElementById('detailContent').classList.remove('hidden');
+            document.getElementById('detailTitle').innerText = cat + "歷史記錄";
+            const list = db.filter(i => i.category === cat).sort((a,b) => b.id - a.id);
+            document.getElementById('historyList').innerHTML = list.length ? list.map(i => `
+                <li class="py-3 flex justify-between text-xs"><span>${i.date}</span><b>${i.value}</b></li>`).join('') : '<li class="py-10 text-center text-gray-400">尚無資料</li>';
+        }
+
         function renderTable() {
             const now = new Date(); const y = now.getFullYear(); const m = now.getMonth() + 1;
             document.getElementById('currentYM').innerText = `${y}年 ${String(m).padStart(2, '0')}月`;
@@ -132,8 +166,7 @@
                 const dayData = db.filter(i => i.date === ds);
                 const getVal = (c) => { 
                     const v = dayData.filter(i => i.category === c).reduce((a, b) => a + b.value, 0);
-                    sums[c] += v;
-                    return v || "";
+                    sums[c] += v; return v || "";
                 };
                 html += `<tr><td>${d}</td><td>(${wk})</td><td>${getVal('念佛')}</td><td>${getVal('打坐')}</td><td>${getVal('拜懺')}</td><td>${getVal('動禪')}</td><td class="p-0"><input type="text" class="cell-input" value="${noteDB[ds]||''}" oninput="saveNote('${ds}', this.value)"></td></tr>`;
             }
@@ -142,14 +175,22 @@
             let totalRateSum = 0;
             ['念佛', '打坐', '拜懺', '動禪'].forEach(c => {
                 const avg = Math.round(sums[c] / days);
-                const rate = Math.round((avg / targets[c]) * 100);
+                const rate = Math.min(100, Math.round((avg / targets[c]) * 100));
                 document.getElementById(`avg-${c}`).innerText = avg || 0;
                 document.getElementById(`rate-${c}`).innerText = rate + "%";
                 totalRateSum += rate;
             });
             document.getElementById('totalAvg').innerText = Math.round(totalRateSum / 4) + "%";
         }
+
         function saveNote(date, val) { noteDB[date] = val; localStorage.setItem('noteDB', JSON.stringify(noteDB)); }
+        function archiveNotes() {
+            if(confirm("確定要將本月心得封存嗎？表格內容將會清空。")) {
+                localStorage.setItem('noteDB', JSON.stringify({}));
+                alert("已成功封存。");
+                location.reload();
+            }
+        }
     </script>
 </body>
 </html>
