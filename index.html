@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>佛乘宗修行功課表 v0.5</title>
+    <title>佛乘宗修行功課表 v0.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
@@ -32,11 +32,10 @@
         </div>
         
         <div class="mt-8 p-4 bg-white rounded-xl shadow">
-            <h2 class="text-xs text-gray-400 mb-2">今日累計 (重新整理亦會保留)</h2>
             <div id="todaySummary" class="grid grid-cols-2 gap-2 text-sm text-gray-600"></div>
         </div>
         
-        <div class="absolute bottom-6 left-6 text-gray-400 text-xs font-mono">v0.5</div>
+        <div class="absolute bottom-6 left-6 text-gray-400 text-xs font-mono">v0.6</div>
     </div>
 
     <div id="inputModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[70]">
@@ -76,9 +75,9 @@
         <div id="printArea" class="bg-white mx-auto p-1" style="max-width: 850px; color:black;">
             <h2 class="text-center text-2xl font-bold mb-4">佛乘宗門人、學員修行功課</h2>
             <div class="flex justify-between items-end text-sm mb-2 px-1">
-                <div id="currentYM" class="font-bold"></div>
+                <div id="currentYM" class="font-bold">2026年 01月</div>
                 <div class="flex gap-4">
-                    <div>組別：<input type="text" id="groupInp" class="w-12 text-center" placeholder="三"></div>
+                    <div>組別：<input type="text" id="groupInp" class="w-12 text-center"></div>
                     <div>法號：<input type="text" id="dharmaInp" class="w-24 text-center"></div>
                     <div>姓名：<input type="text" id="nameInp" class="w-24 text-center"></div>
                 </div>
@@ -110,7 +109,7 @@
                         <td id="avg-打坐"></td>
                         <td id="avg-拜懺"></td>
                         <td id="avg-動禪"></td>
-                        <td rowspan="2" class="text-xs text-center p-1">平均達成率% (a+b+c+d)/4</td>
+                        <td class="text-[11px] text-center p-1">平均達成率% (a+b+c+d)/4</td>
                     </tr>
                     <tr>
                         <td colspan="2" class="font-bold">達成率%</td>
@@ -118,54 +117,37 @@
                         <td id="rate-打坐"></td>
                         <td id="rate-拜懺"></td>
                         <td id="rate-動禪"></td>
+                        <td id="totalRate" class="font-bold text-lg">0%</td>
                     </tr>
                     <tr>
-                        <td colspan="6" class="text-left font-bold px-4 h-12">講師核閱</td>
-                        <td id="totalRate" class="font-bold text-xl">0%</td>
+                        <td colspan="2" class="font-bold">講師核閱</td>
+                        <td colspan="5"></td>
                     </tr>
                 </tfoot>
             </table>
-            <div class="mt-2 text-[11px] leading-relaxed px-1">
+            <div class="mt-2 text-[11px] leading-relaxed">
                 備註：1. 心得欄可記錄去習氣，修德大之情形。 2. 每日功課建議：三禪一懺為主，配合六大心法持誦。
             </div>
         </div>
     </div>
 
     <script>
-        // --- 資料核心邏輯 ---
-        let db = [];
+        let db = JSON.parse(localStorage.getItem('practiceDB')) || [];
         const targets = { '念佛': 30000, '打坐': 120, '拜懺': 60, '動禪': 60 };
+        let currentCat = '';
         const now = new Date();
         const year = now.getFullYear();
         const month = now.getMonth() + 1;
 
-        // 初始化：網頁載入時立即執行
         window.onload = function() {
-            loadDatabase();
             renderSummary();
             document.getElementById('currentYM').innerText = `${year}年 ${String(month).padStart(2, '0')}月`;
-            
-            // 自動恢復上次輸入的組別/法號/姓名 (可選功能)
             ['groupInp', 'dharmaInp', 'nameInp'].forEach(id => {
                 const savedVal = localStorage.getItem(id);
                 if(savedVal) document.getElementById(id).value = savedVal;
                 document.getElementById(id).onchange = (e) => localStorage.setItem(id, e.target.value);
             });
         };
-
-        function loadDatabase() {
-            const savedData = localStorage.getItem('practiceDB');
-            db = savedData ? JSON.parse(savedData) : [];
-            console.log("資料庫已載入，共 " + db.length + " 筆記錄");
-        }
-
-        function saveDataToLocal() {
-            localStorage.setItem('practiceDB', JSON.stringify(db));
-            renderSummary();
-        }
-
-        // --- UI 操作邏輯 ---
-        let currentCat = '';
 
         function openInput(cat, unit) {
             currentCat = cat;
@@ -174,15 +156,11 @@
             document.getElementById('inputValue').focus();
         }
 
-        function closeInput() { 
-            document.getElementById('inputModal').classList.add('hidden'); 
-            document.getElementById('inputValue').value = ''; 
-        }
+        function closeInput() { document.getElementById('inputModal').classList.add('hidden'); document.getElementById('inputValue').value = ''; }
 
         function saveData() {
             const val = document.getElementById('inputValue').value;
-            if(!val || val <= 0) return;
-            
+            if(!val) return;
             db.push({
                 id: Date.now(),
                 date: new Date().toISOString().split('T')[0],
@@ -190,9 +168,9 @@
                 category: currentCat,
                 value: parseInt(val)
             });
-            
-            saveDataToLocal();
+            localStorage.setItem('practiceDB', JSON.stringify(db));
             closeInput();
+            renderSummary();
         }
 
         function renderSummary() {
@@ -212,15 +190,10 @@
             document.getElementById('drawerContent').classList.add('hidden');
             document.getElementById('detailContent').classList.remove('hidden');
             const list = db.filter(i => i.category === cat).sort((a,b) => b.id - a.id);
-            document.getElementById('historyList').innerHTML = list.length 
-                ? list.map(i => `<li class="py-3 flex justify-between text-xs"><span>${i.date} ${i.time}</span><b>${i.value}</b></li>`).join('')
-                : '<li class="py-8 text-center text-gray-400">尚無記錄</li>';
+            document.getElementById('historyList').innerHTML = list.map(i => `<li class="py-3 flex justify-between text-xs"><span>${i.date} ${i.time}</span><b>${i.value}</b></li>`).join('');
         }
 
-        function backToDrawer() { 
-            document.getElementById('drawerContent').classList.remove('hidden'); 
-            document.getElementById('detailContent').classList.add('hidden'); 
-        }
+        function backToDrawer() { document.getElementById('drawerContent').classList.remove('hidden'); document.getElementById('detailContent').classList.add('hidden'); }
 
         function openReport() { renderTable(); document.getElementById('reportPage').classList.remove('hidden'); }
         function closeReport() { document.getElementById('reportPage').classList.add('hidden'); }
