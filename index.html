@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>佛乘宗修行功課表 v0.2</title>
+    <title>佛乘宗修行功課表 v0.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; border: none !important; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
+            input { border: none !important; outline: none !important; }
             .no-print { display: none; }
         }
-        table td, table th { border: 1px solid #000; padding: 4px; text-align: center; font-size: 12px; height: 28px; }
+        table td, table th { border: 1px solid #000; padding: 4px; text-align: center; font-size: 13px; height: 32px; }
         .drawer { transition: transform 0.3s ease-in-out; }
         .drawer-closed { transform: translateY(100%); }
+        input[type="text"] { background: transparent; border-bottom: 1px solid #ccc; outline: none; padding: 2px 5px; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -28,10 +30,9 @@
             <button onclick="openInput('動禪', '分鐘')" class="h-32 bg-purple-500 text-white rounded-2xl shadow-lg text-xl font-bold active:scale-95 transition-transform">動禪</button>
         </div>
         <div class="mt-8 p-4 bg-white rounded-xl shadow">
-            <h2 class="font-bold text-gray-700 border-b pb-2 mb-2 text-sm">今日累計</h2>
             <div id="todaySummary" class="grid grid-cols-2 gap-2 text-sm text-gray-600"></div>
         </div>
-        <div class="absolute bottom-6 left-6 text-gray-400 text-xs font-mono">v0.2</div>
+        <div class="absolute bottom-6 left-6 text-gray-400 text-xs font-mono">v0.3</div>
     </div>
 
     <div id="inputModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[70]">
@@ -39,8 +40,8 @@
             <h3 id="modalTitle" class="text-xl font-bold mb-4">輸入數據</h3>
             <input type="number" id="inputValue" inputmode="numeric" class="w-full border-2 border-indigo-200 rounded-lg p-3 text-2xl mb-4 focus:outline-none focus:border-indigo-500">
             <div class="flex gap-2">
-                <button onclick="closeInput()" class="flex-1 py-3 bg-gray-200 rounded-lg text-sm">取消</button>
-                <button onclick="saveData()" class="flex-1 py-3 bg-indigo-600 text-white rounded-lg font-bold text-sm">確定</button>
+                <button onclick="closeInput()" class="flex-1 py-3 bg-gray-200 rounded-lg">取消</button>
+                <button onclick="saveData()" class="flex-1 py-3 bg-indigo-600 text-white rounded-lg font-bold">確定</button>
             </div>
         </div>
     </div>
@@ -48,16 +49,13 @@
     <button onclick="toggleDrawer()" class="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl z-40">☰</button>
 
     <div id="drawer" class="drawer drawer-closed fixed inset-0 bg-white z-50 overflow-y-auto p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold">歷史清單</h2>
-            <button onclick="toggleDrawer()" class="text-2xl p-2">✕</button>
-        </div>
+        <div class="flex justify-between items-center mb-6 text-xl font-bold">歷史清單 <button onclick="toggleDrawer()" class="p-2">✕</button></div>
         <div id="drawerContent" class="space-y-4">
-            <div onclick="showCategory('念佛')" class="p-4 bg-gray-50 rounded-lg border flex justify-between cursor-pointer"><span>念佛</span><span class="text-gray-400">></span></div>
-            <div onclick="showCategory('打坐')" class="p-4 bg-gray-50 rounded-lg border flex justify-between cursor-pointer"><span>打坐</span><span class="text-gray-400">></span></div>
-            <div onclick="showCategory('拜懺')" class="p-4 bg-gray-50 rounded-lg border flex justify-between cursor-pointer"><span>拜懺</span><span class="text-gray-400">></span></div>
-            <div onclick="showCategory('動禪')" class="p-4 bg-gray-50 rounded-lg border flex justify-between cursor-pointer"><span>動禪</span><span class="text-gray-400">></span></div>
-            <button onclick="openReport()" class="w-full mt-6 py-4 bg-slate-800 text-white rounded-xl font-bold">開啟 A4 修行功課表</button>
+            <div onclick="showCategory('念佛')" class="p-4 bg-gray-50 rounded-lg border flex justify-between cursor-pointer"><span>念佛記錄</span><span>></span></div>
+            <div onclick="showCategory('打坐')" class="p-4 bg-gray-50 rounded-lg border flex justify-between cursor-pointer"><span>打坐記錄</span><span>></span></div>
+            <div onclick="showCategory('拜懺')" class="p-4 bg-gray-50 rounded-lg border flex justify-between cursor-pointer"><span>拜懺記錄</span><span>></span></div>
+            <div onclick="showCategory('動禪')" class="p-4 bg-gray-50 rounded-lg border flex justify-between cursor-pointer"><span>動禪記錄</span><span>></span></div>
+            <button onclick="openReport()" class="w-full mt-6 py-4 bg-slate-800 text-white rounded-xl font-bold">開啟完整功課表 (A4)</button>
         </div>
         <div id="detailContent" class="hidden mt-4 space-y-2">
             <button onclick="backToDrawer()" class="text-indigo-600 mb-2 font-bold">← 返回</button>
@@ -67,35 +65,37 @@
 
     <div id="reportPage" class="hidden fixed inset-0 bg-white z-[60] overflow-y-auto p-2 sm:p-4">
         <div class="no-print flex justify-between mb-4 sticky top-0 bg-white py-2 border-b">
-            <button onclick="closeReport()" class="px-4 py-2 bg-gray-200 rounded text-sm">關閉</button>
-            <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded shadow text-sm">列印 A4</button>
+            <button onclick="closeReport()" class="px-4 py-2 bg-gray-200 rounded">關閉</button>
+            <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded shadow">列印 A4</button>
         </div>
         
-        <div id="printArea" class="bg-white mx-auto p-1" style="max-width: 800px; color:black;">
-            <h2 class="text-center text-xl font-bold mb-2">佛乘宗門人、學員修行功課</h2>
-            <div class="flex justify-between text-[10px] mb-1 px-1">
-                <div id="currentYM">2026年 01月</div>
-                <div>組別：三</div>
-                <div>法號：__________</div>
-                <div>姓名：__________</div>
+        <div id="printArea" class="bg-white mx-auto p-1" style="max-width: 850px; color:black;">
+            <h2 class="text-center text-2xl font-bold mb-4">佛乘宗門人、學員修行功課</h2>
+            <div class="flex justify-between items-end text-sm mb-2 px-1">
+                <div id="currentYM" class="font-bold">2026年 01月</div>
+                <div class="flex gap-4">
+                    <div>組別：<input type="text" class="w-12 text-center" placeholder="三"></div>
+                    <div>法號：<input type="text" class="w-24 text-center"></div>
+                    <div>姓名：<input type="text" class="w-24 text-center"></div>
+                </div>
             </div>
 
-            <table class="w-full border-collapse">
+            <table class="w-full border-collapse border-2 border-black">
                 <thead>
-                    <tr>
+                    <tr class="bg-gray-50">
                         <th rowspan="2" width="6%">日期</th>
                         <th rowspan="2" width="6%">星期</th>
-                        <th width="15%">30000聲</th>
-                        <th width="15%">120分</th>
-                        <th width="15%">60分</th>
-                        <th width="15%">60分</th>
+                        <th width="14%">30000聲</th>
+                        <th width="14%">120分</th>
+                        <th width="14%">60分</th>
+                        <th width="14%">60分</th>
                         <th rowspan="2">心 得</th>
                     </tr>
-                    <tr>
-                        <th>念佛(聲)</th>
-                        <th>打坐(分)</th>
-                        <th>拜懺(分)</th>
-                        <th>動禪(分)</th>
+                    <tr class="bg-gray-50">
+                        <th>念佛 (聲)</th>
+                        <th>打坐 (分)</th>
+                        <th>拜懺 (分)</th>
+                        <th>動禪 (分)</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -106,7 +106,7 @@
                         <td id="avg-打坐"></td>
                         <td id="avg-拜懺"></td>
                         <td id="avg-動禪"></td>
-                        <td rowspan="2" class="text-[10px] align-top text-left p-1">平均達成率% (a+b+c+d)/4</td>
+                        <td rowspan="2" class="text-xs text-center p-1">平均達成率% (a+b+c+d)/4</td>
                     </tr>
                     <tr>
                         <td colspan="2" class="font-bold">達成率%</td>
@@ -116,12 +116,12 @@
                         <td id="rate-動禪"></td>
                     </tr>
                     <tr>
-                        <td colspan="6" class="text-left font-bold px-2">講師核閱</td>
-                        <td id="totalRate" class="font-bold text-lg">0%</td>
+                        <td colspan="6" class="text-left font-bold px-4 h-12">講師核閱</td>
+                        <td id="totalRate" class="font-bold text-xl">0%</td>
                     </tr>
                 </tfoot>
             </table>
-            <div class="mt-2 text-[10px] leading-relaxed">
+            <div class="mt-2 text-[11px] leading-relaxed">
                 備註：1. 心得欄可記錄去習氣，修德大之情形。 2. 每日功課建議：三禪一懺為主，配合六大心法持誦。
             </div>
         </div>
@@ -147,10 +147,7 @@
             document.getElementById('inputValue').focus();
         }
 
-        function closeInput() {
-            document.getElementById('inputModal').classList.add('hidden');
-            document.getElementById('inputValue').value = '';
-        }
+        function closeInput() { document.getElementById('inputModal').classList.add('hidden'); document.getElementById('inputValue').value = ''; }
 
         function saveData() {
             const val = document.getElementById('inputValue').value;
@@ -187,10 +184,7 @@
             document.getElementById('historyList').innerHTML = list.map(i => `<li class="py-3 flex justify-between text-xs"><span>${i.date} ${i.time}</span><b>${i.value}</b></li>`).join('');
         }
 
-        function backToDrawer() {
-            document.getElementById('drawerContent').classList.remove('hidden');
-            document.getElementById('detailContent').classList.add('hidden');
-        }
+        function backToDrawer() { document.getElementById('drawerContent').classList.remove('hidden'); document.getElementById('detailContent').classList.add('hidden'); }
 
         function openReport() { renderTable(); document.getElementById('reportPage').classList.remove('hidden'); }
         function closeReport() { document.getElementById('reportPage').classList.add('hidden'); }
@@ -205,27 +199,24 @@
                 const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const dayOfWeek = weekNames[new Date(year, month - 1, d).getDay()];
                 const dayData = db.filter(i => i.date === dateStr);
-                
                 const getSum = (c) => {
                     const s = dayData.filter(i => i.category === c).reduce((a, b) => a + b.value, 0);
                     sums[c] += s;
                     return s || '';
                 };
-
                 tableHtml += `<tr><td>${d}</td><td>(${dayOfWeek})</td><td>${getSum('念佛')}</td><td>${getSum('打坐')}</td><td>${getSum('拜懺')}</td><td>${getSum('動禪')}</td><td></td></tr>`;
             }
             document.getElementById('tableBody').innerHTML = tableHtml;
 
-            // 計算平均與達成率
             let totalRateSum = 0;
             ['念佛', '打坐', '拜懺', '動禪'].forEach(c => {
-                const avg = (sums[c] / daysInMonth).toFixed(0);
-                const rate = ((avg / targets[c]) * 100).toFixed(0);
+                const avg = Math.round(sums[c] / daysInMonth);
+                const rate = Math.round((avg / targets[c]) * 100);
                 document.getElementById(`avg-${c}`).innerText = avg > 0 ? avg : '';
                 document.getElementById(`rate-${c}`).innerText = rate > 0 ? rate + '%' : '0%';
-                totalRateSum += parseFloat(rate);
+                totalRateSum += rate;
             });
-            document.getElementById('totalRate').innerText = (totalRateSum / 4).toFixed(1) + '%';
+            document.getElementById('totalRate').innerText = Math.round(totalRateSum / 4) + '%';
         }
 
         init();
