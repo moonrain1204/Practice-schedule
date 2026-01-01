@@ -3,24 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>佛乘宗修行功課表 v1.4</title>
+    <title>佛乘宗修行功課表 v1.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 針對 A4 列印優化 */
         @media print {
-            @page { size: A4; margin: 0; }
-            body { margin: 0; padding: 0; background: white; }
+            @page { size: A4; margin: 1cm; }
+            body { background: white; }
             .no-print { display: none !important; }
-            #mainPage, #drawer { display: none !important; }
-            #reportPage { display: block !important; position: static; padding: 1.5cm; }
-            table { width: 100%; border-collapse: collapse; }
-            td, th { border: 1.5px solid black !important; font-size: 11px !important; height: 26px !important; }
-            input { border: none !important; width: 100%; background: transparent; }
+            #reportPage { display: block !important; position: static; padding: 0; }
+            table { width: 100%; table-layout: fixed; }
+            td, th { border: 1px solid black !important; font-size: 10px !important; height: 22px !important; }
             .print-container { width: 100% !important; max-width: none !important; }
         }
         table td, table th { border: 1px solid #000; text-align: center; }
-        .cell-input { width: 100%; height: 100%; border: none; outline: none; padding: 0 4px; font-size: 12px; background: transparent; }
-        .drawer { transition: transform 0.3s ease-in-out; }
+        .cell-input { width: 100%; height: 100%; border: none; outline: none; padding: 0 4px; font-size: 11px; background: transparent; }
         .drawer-closed { transform: translateY(100%); }
     </style>
 </head>
@@ -29,70 +25,64 @@
     <div id="mainPage" class="p-6 max-w-md mx-auto relative min-h-screen pb-24">
         <h1 class="text-2xl font-bold text-center mt-8 mb-10 text-indigo-900">修行功課隨手記</h1>
         <div class="grid grid-cols-2 gap-4">
-            <button onclick="openInput('念佛', '聲')" class="h-28 bg-orange-500 text-white rounded-2xl shadow-md text-lg font-bold active:scale-95 transition-transform">念佛</button>
-            <button onclick="openInput('打坐', '分鐘')" class="h-28 bg-blue-500 text-white rounded-2xl shadow-md text-lg font-bold active:scale-95 transition-transform">打坐</button>
-            <button onclick="openInput('拜懺', '分鐘')" class="h-28 bg-green-600 text-white rounded-2xl shadow-md text-lg font-bold active:scale-95 transition-transform">拜懺</button>
-            <button onclick="openInput('動禪', '分鐘')" class="h-28 bg-purple-500 text-white rounded-2xl shadow-md text-lg font-bold active:scale-95 transition-transform">動禪</button>
+            <button onclick="openInput('念佛', '聲')" class="h-28 bg-orange-500 text-white rounded-2xl shadow-md text-lg font-bold">念佛</button>
+            <button onclick="openInput('打坐', '分鐘')" class="h-28 bg-blue-500 text-white rounded-2xl shadow-md text-lg font-bold">打坐</button>
+            <button onclick="openInput('拜懺', '分鐘')" class="h-28 bg-green-600 text-white rounded-2xl shadow-md text-lg font-bold">拜懺</button>
+            <button onclick="openInput('動禪', '分鐘')" class="h-28 bg-purple-500 text-white rounded-2xl shadow-md text-lg font-bold">動禪</button>
         </div>
-        <div id="todaySummary" class="mt-8 p-4 bg-white rounded-xl shadow-sm border border-gray-200 grid grid-cols-2 gap-2 text-sm text-center"></div>
-        <div class="absolute bottom-6 left-6 text-gray-400 text-[10px] font-mono">本機存儲 | v1.4</div>
-        <button onclick="toggleDrawer()" class="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg flex items-center justify-center text-2xl z-40">☰</button>
-    </div>
-
-    <div id="drawer" class="drawer drawer-closed fixed inset-0 bg-white z-50 overflow-y-auto p-6">
-        <div class="flex justify-between items-center mb-6 text-xl font-bold">歷史與管理 <button onclick="toggleDrawer()" class="text-2xl">✕</button></div>
-        <div class="space-y-6">
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="showCategory('念佛')" class="p-3 bg-gray-50 rounded-lg border text-sm">念佛歷史</button>
-                <button onclick="showCategory('打坐')" class="p-3 bg-gray-50 rounded-lg border text-sm">打坐歷史</button>
-                <button onclick="showCategory('拜懺')" class="p-3 bg-gray-50 rounded-lg border text-sm">拜懺歷史</button>
-                <button onclick="showCategory('動禪')" class="p-3 bg-gray-50 rounded-lg border text-sm">動禪歷史</button>
-            </div>
-            <button onclick="openReport()" class="w-full py-4 bg-slate-800 text-white rounded-xl font-bold shadow-lg">開啟 A4 完整功課表</button>
-            <div class="pt-20 text-center">
-                <button onclick="archiveNotes()" class="text-xs text-gray-400 underline italic opacity-50">月末封存心得並清空表格</button>
-            </div>
-        </div>
+        <div id="todaySummary" class="mt-8 p-4 bg-white rounded-xl shadow-sm border grid grid-cols-2 gap-2 text-sm text-center"></div>
+        <div class="absolute bottom-6 left-6 text-gray-400 text-[10px]">v1.5 | 僅存於手機</div>
+        <button onclick="toggleDrawer()" class="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg text-2xl z-40">☰</button>
     </div>
 
     <div id="reportPage" class="hidden fixed inset-0 bg-white z-[60] overflow-y-auto p-4">
         <div class="no-print flex justify-between p-4 bg-gray-100 mb-4 rounded-lg">
-            <button onclick="closeReport()" class="px-6 py-2 bg-gray-400 text-white rounded">關閉</button>
-            <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white rounded font-bold shadow">列印 A4 表格</button>
+            <button onclick="closeReport()" class="px-6 py-2 bg-gray-400 text-white rounded font-bold">關閉</button>
+            <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white rounded font-bold shadow">確認列印 (A4)</button>
         </div>
         
-        <div id="printArea" class="print-container bg-white mx-auto p-2" style="max-width: 800px; color:black;">
-            <h2 class="text-center text-xl font-bold mb-4">佛乘宗門人、學員修行功課</h2>
-            <div class="flex justify-between text-[13px] mb-2 px-1">
-                <div class="font-bold flex gap-2">
-                    <span id="currentYM"></span>
-                    <span>組別：<input type="text" class="w-8 border-b border-black text-center" value=""></span>
-                </div>
-                <div class="flex gap-4">
-                    <span>法號：<input type="text" id=" dharmaName" class="w-24 border-b border-black" oninput="saveInfo('dharma', this.value)"></span>
-                    <span>姓名：<input type="text" id="userName" class="w-24 border-b border-black" oninput="saveInfo('name', this.value)"></span>
-                </div>
+        <div id="printArea" class="print-container bg-white mx-auto p-2" style="max-width: 750px; color:black;">
+            <h2 class="text-center text-xl font-bold mb-3">佛乘宗門人、學員修行功課</h2>
+            
+            <div class="flex text-[12px] mb-2 px-1">
+                <div class="w-1/4"><span id="currentYM" class="font-bold mr-2"></span>組別：<input type="text" class="w-10 border-b border-black text-center" value="三"></div>
+                <div class="w-1/3">法號：<input type="text" id="dharmaName" class="w-28 border-b border-black" oninput="saveInfo('dharma', this.value)"></div>
+                <div class="flex-1">姓名：<input type="text" id="userName" class="w-28 border-b border-black" oninput="saveInfo('name', this.value)"></div>
             </div>
+
             <table class="w-full border-collapse border-[1.5px] border-black">
                 <thead>
-                    <tr class="bg-gray-50 text-[11px]">
+                    <tr class="bg-gray-50 text-[10px]">
                         <th rowspan="2" width="6%">日期</th><th rowspan="2" width="6%">星期</th>
-                        <th width="13%">30000聲</th><th width="13%">120分</th><th width="13%">60分</th><th width="13%">60分</th><th rowspan="2">心 得</th>
+                        <th width="12%">30000聲</th><th width="12%">120分</th><th width="12%">60分</th><th width="12%">60分</th><th rowspan="2">心 得</th>
                     </tr>
-                    <tr class="bg-gray-50 text-[11px]"><th>念佛(聲)</th><th>打坐(分)</th><th>拜懺(分)</th><th>動禪(分)</th></tr>
+                    <tr class="bg-gray-50 text-[10px]"><th>念佛(聲)</th><th>打坐(分)</th><th>拜懺(分)</th><th>動禪(分)</th></tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
-                <tbody id="statsBody" class="text-[11px] font-bold">
-                    <tr><td colspan="2">日平均</td><td id="avg-念佛"></td><td id="avg-打坐"></td><td id="avg-拜懺"></td><td id="avg-動禪"></td><td rowspan="2" class="text-left text-[10px] p-1 align-top">平均達成率% (a+b+c+d)/4<br><div id="totalAvg" class="text-center text-lg mt-1">0%</div></td></tr>
-                    <tr><td colspan="2">達成率%</td><td id="rate-念佛">0%</td><td id="rate-打坐">0%</td><td id="rate-拜懺">0%</td><td id="rate-動禪">0%</td></tr>
-                    <tr><td colspan="2">講師核閱</td><td colspan="4"></td><td></td></tr>
+                <tbody class="text-[10px] font-bold">
+                    <tr>
+                        <td colspan="2" class="h-6">日平均</td>
+                        <td id="avg-念佛"></td><td id="avg-打坐"></td><td id="avg-拜懺"></td><td id="avg-動禪"></td>
+                        <td class="text-left px-2 border-b-0">平均達成率% (a+b+c+d)/4</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="h-6">達成率%</td>
+                        <td id="rate-念佛">0%</td><td id="rate-打坐">0%</td><td id="rate-拜懺">0%</td><td id="rate-動禪">0%</td>
+                        <td id="totalAvg" class="text-lg border-t-0">0%</td>
+                    </tr>
+                    <tr><td colspan="2" class="h-6">講師核閱</td><td colspan="4"></td><td></td></tr>
                 </tbody>
             </table>
-            <div class="text-[10px] mt-2 flex justify-between">
+            <div class="text-[9px] mt-2 flex justify-between px-1">
                 <span>備註：1.心得欄可記錄去習氣,修德大之情形。</span>
                 <span>2.每日功課建議：三禪一懺為主,配合六大心法持誦</span>
             </div>
         </div>
+    </div>
+
+    <div id="drawer" class="fixed inset-0 bg-white z-50 overflow-y-auto p-6 transition-transform drawer-closed">
+         <div class="flex justify-between items-center mb-6 text-xl font-bold">歷史管理 <button onclick="toggleDrawer()" class="text-2xl">✕</button></div>
+         <button onclick="openReport()" class="w-full py-4 bg-slate-800 text-white rounded-xl font-bold">開啟 A4 完整功課表</button>
     </div>
 
     <script>
@@ -142,14 +132,13 @@
                 const dayData = db.filter(i => i.date === ds);
                 const getVal = (c) => { 
                     const v = dayData.filter(i => i.category === c).reduce((a, b) => a + b.value, 0);
-                    if(v > 0) sums[c] += v;
+                    sums[c] += v;
                     return v || "";
                 };
                 html += `<tr><td>${d}</td><td>(${wk})</td><td>${getVal('念佛')}</td><td>${getVal('打坐')}</td><td>${getVal('拜懺')}</td><td>${getVal('動禪')}</td><td class="p-0"><input type="text" class="cell-input" value="${noteDB[ds]||''}" oninput="saveNote('${ds}', this.value)"></td></tr>`;
             }
             document.getElementById('tableBody').innerHTML = html;
 
-            // 計算平均與達成率
             let totalRateSum = 0;
             ['念佛', '打坐', '拜懺', '動禪'].forEach(c => {
                 const avg = Math.round(sums[c] / days);
@@ -160,9 +149,7 @@
             });
             document.getElementById('totalAvg').innerText = Math.round(totalRateSum / 4) + "%";
         }
-
         function saveNote(date, val) { noteDB[date] = val; localStorage.setItem('noteDB', JSON.stringify(noteDB)); }
-        function archiveNotes() { if(confirm("確定封存心得嗎？")) { localStorage.setItem('noteDB', JSON.stringify({})); location.reload(); } }
     </script>
 </body>
 </html>
