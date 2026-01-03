@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>佛乘宗修行功課表 v2.6</title>
+    <title>佛乘宗修行功課表 v2.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
@@ -33,17 +33,16 @@
         <div id="todaySummary" class="mt-10 p-6 bg-white rounded-2xl shadow-sm border border-gray-100 grid grid-cols-2 gap-4 text-center"></div>
         
         <button onclick="toggleArchiveModal()" class="mt-12 text-indigo-600 font-bold border-b border-indigo-600 pb-1 italic text-sm">📁 查看歷史封存紀錄</button>
-
         <button onclick="toggleDrawer()" class="fixed bottom-8 right-8 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl text-3xl z-40">☰</button>
     </div>
 
-    <div id="archiveListModal" class="fixed inset-0 bg-black/50 z-[100] hidden no-print flex items-end">
-        <div class="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto">
+    <div id="archiveListModal" class="fixed inset-0 bg-black/60 z-[100] hidden no-print flex items-end">
+        <div class="bg-white w-full rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto shadow-2xl">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold">歷史月份封存</h2>
-                <button onclick="toggleArchiveModal()" class="text-2xl text-gray-400">✕</button>
+                <h2 class="text-xl font-bold text-slate-800">歷史月份封存</h2>
+                <button onclick="toggleArchiveModal()" class="text-3xl text-gray-400">&times;</button>
             </div>
-            <div id="archiveContainer" class="space-y-4">
+            <div id="archiveContainer" class="space-y-4 pb-10">
                 </div>
         </div>
     </div>
@@ -58,7 +57,7 @@
                 <button onclick="showCategory('動禪')" class="py-4 bg-gray-50 rounded-xl border font-bold">動禪歷史</button>
             </div>
             <button onclick="openReport()" class="w-full py-5 bg-slate-800 text-white rounded-2xl font-bold shadow-xl">開啟 A4 完整功課表</button>
-            <div class="mt-12"><button onclick="archiveAllData()" class="text-xs text-red-400 underline italic font-bold">封存並清空本月資料</button></div>
+            <div class="mt-12"><button onclick="archiveAllData()" class="text-xs text-red-500 underline italic font-bold">封存並清空本月資料</button></div>
         </div>
         <div id="detailContent" class="hidden">
             <button onclick="backToDrawer()" class="text-indigo-600 mb-6 font-bold">← 返回</button>
@@ -88,6 +87,7 @@
     </div>
 
     <script>
+        // 初始化資料
         let db = JSON.parse(localStorage.getItem('practiceDB')) || [];
         let noteDB = JSON.parse(localStorage.getItem('noteDB')) || {};
         let archiveDB = JSON.parse(localStorage.getItem('archiveDB')) || [];
@@ -96,13 +96,16 @@
 
         window.onload = () => { 
             renderSummary(); 
-            document.getElementById('groupName').value = userInfo.group || '';
-            document.getElementById('dharmaName').value = userInfo.dharma || '';
-            document.getElementById('userName').value = userInfo.name || '';
+            if(document.getElementById('groupName')) {
+                document.getElementById('groupName').value = userInfo.group || '';
+                document.getElementById('dharmaName').value = userInfo.dharma || '';
+                document.getElementById('userName').value = userInfo.name || '';
+            }
         };
 
         function saveInfo(key, val) { userInfo[key] = val; localStorage.setItem('userInfo', JSON.stringify(userInfo)); }
         function toggleDrawer() { document.getElementById('drawer').classList.toggle('drawer-closed'); }
+        
         function toggleArchiveModal() { 
             const modal = document.getElementById('archiveListModal');
             modal.classList.toggle('hidden');
@@ -127,76 +130,87 @@
             }).join('');
         }
 
+        // 核心修正：封存邏輯
         function archiveAllData() {
-            if(confirm("確定要封存並清空本月資料嗎？\n系統會自動為本月數據建立存檔。")) {
-                // 建立存檔快照
+            if(db.length === 0 && Object.keys(noteDB).length === 0) {
+                alert("目前沒有資料可以封存喔！");
+                return;
+            }
+
+            if(confirm("確定要封存本月資料嗎？\n資料將移往「歷史封存紀錄」並清空主介面。")) {
                 const now = new Date();
                 const monthStr = `${now.getFullYear()}年${now.getMonth()+1}月`;
-                const stats = calculateStats();
                 
+                // 計算當月總和
+                const cats = ['念佛', '打坐', '拜懺', '動禪'];
+                let stats = {};
+                cats.forEach(c => {
+                    stats[c] = db.filter(i => i.category === c).reduce((a,b) => a + b.value, 0);
+                });
+
                 const newArchive = {
                     id: Date.now(),
                     month: monthStr,
                     stats: stats,
-                    notes: {...noteDB}
+                    noteCount: Object.keys(noteDB).length
                 };
-                
+
+                // 更新存檔數據
                 archiveDB.unshift(newArchive);
                 localStorage.setItem('archiveDB', JSON.stringify(archiveDB));
                 
-                // 清空數據
+                // 清空當前數據
                 localStorage.setItem('practiceDB', JSON.stringify([]));
                 localStorage.setItem('noteDB', JSON.stringify({}));
-                db = []; noteDB = {};
-                alert(`${monthStr} 資料已封存。`);
+                
+                alert("存檔成功！已移至歷史紀錄。");
                 location.reload();
             }
         }
 
-        function calculateStats() {
-            const cats = ['念佛', '打坐', '拜懺', '動禪'];
-            let res = {};
-            cats.forEach(c => {
-                const total = db.filter(i => i.category === c).reduce((a,b) => a + b.value, 0);
-                res[c] = total;
-            });
-            return res;
-        }
-
         function renderArchiveList() {
             const container = document.getElementById('archiveContainer');
-            if(archiveDB.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 py-10">尚無任何封存紀錄</p>';
+            const data = JSON.parse(localStorage.getItem('archiveDB')) || [];
+            
+            if(data.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-5xl mb-4">空</div>
+                        <p class="text-gray-400">尚無任何封存紀錄</p>
+                    </div>`;
                 return;
             }
-            container.innerHTML = archiveDB.map((item, index) => `
-                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div class="flex justify-between font-bold text-indigo-900 mb-2">
-                        <span>${item.month} 修行存檔</span>
-                        <button onclick="deleteArchive(${index})" class="text-red-400 text-xs">刪除</button>
+
+            container.innerHTML = data.map((item, index) => `
+                <div class="p-5 bg-white border border-gray-200 rounded-2xl shadow-sm">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="font-bold text-lg text-indigo-900">${item.month} 修行存檔</h3>
+                        <button onclick="deleteArchive(${index})" class="text-red-400 text-xs border border-red-100 px-2 py-1 rounded-lg">刪除</button>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                        <p>念佛總計: ${item.stats['念佛'] || 0}</p>
-                        <p>打坐總計: ${item.stats['打坐'] || 0}</p>
-                        <p>拜懺總計: ${item.stats['拜懺'] || 0}</p>
-                        <p>動禪總計: ${item.stats['動禪'] || 0}</p>
+                    <div class="grid grid-cols-2 gap-y-2 text-sm text-gray-600">
+                        <div>念佛總量: <span class="font-bold text-slate-800">${item.stats['念佛'] || 0}</span></div>
+                        <div>打坐總量: <span class="font-bold text-slate-800">${item.stats['打坐'] || 0}</span></div>
+                        <div>拜懺總量: <span class="font-bold text-slate-800">${item.stats['拜懺'] || 0}</span></div>
+                        <div>動禪總量: <span class="font-bold text-slate-800">${item.stats['動禪'] || 0}</span></div>
+                        <div class="col-span-2 text-xs text-gray-400 mt-2 italic border-t pt-2">心得紀錄共 ${item.noteCount || 0} 筆</div>
                     </div>
                 </div>
             `).join('');
         }
 
         function deleteArchive(index) {
-            if(confirm("確定要刪除這筆歷史存檔嗎？")) {
-                archiveDB.splice(index, 1);
-                localStorage.setItem('archiveDB', JSON.stringify(archiveDB));
+            if(confirm("確定要徹底刪除這筆歷史存檔嗎？")) {
+                let currentArchive = JSON.parse(localStorage.getItem('archiveDB')) || [];
+                currentArchive.splice(index, 1);
+                localStorage.setItem('archiveDB', JSON.stringify(currentArchive));
                 renderArchiveList();
             }
         }
 
+        // 其他基礎功能維持
         function openReport() { renderTable(); document.getElementById('reportPage').classList.remove('hidden'); }
         function closeReport() { document.getElementById('reportPage').classList.add('hidden'); }
         function backToDrawer() { document.getElementById('drawerContent').classList.remove('hidden'); document.getElementById('detailContent').classList.add('hidden'); }
-
         function showCategory(cat) {
             document.getElementById('drawerContent').classList.add('hidden');
             document.getElementById('detailContent').classList.remove('hidden');
@@ -204,48 +218,28 @@
             const list = db.filter(i => i.category === cat).sort((a,b) => b.id - a.id);
             document.getElementById('historyList').innerHTML = list.length ? list.map(i => `<li class="py-4 flex justify-between items-center text-sm"><span>${i.date}</span><b class="text-indigo-600 font-bold">${i.value}</b></li>`).join('') : '<li class="py-10 text-center text-gray-400">尚無資料</li>';
         }
-
         function renderTable() {
             const now = new Date(); const y = now.getFullYear(); const m = now.getMonth() + 1;
             document.getElementById('currentYM').innerText = `${y}年 ${String(m).padStart(2, '0')}月`;
             const days = new Date(y, m, 0).getDate();
             const weekNames = ['日', '一', '二', '三', '四', '五', '六'];
-            
-            document.getElementById('tableHead').innerHTML = `
-                <tr class="bg-gray-50 text-[12px]">
-                    <th rowspan="2" width="8%">日期</th><th rowspan="2" width="8%">星期</th>
-                    <th width="14%">30000聲</th><th width="14%">120分</th><th width="14%">60分</th><th width="14%">60分</th><th rowspan="2" width="28%">心 得</th>
-                </tr>
-                <tr class="bg-gray-50 text-[12px]"><th>念佛(聲)</th><th>打坐(分)</th><th>拜懺(分)</th><th>動禪(分)</th></tr>`;
-
-            let html = "";
-            let sums = { '念佛': 0, '打坐': 0, '拜懺': 0, '動禪': 0 };
+            document.getElementById('tableHead').innerHTML = `<tr class="bg-gray-50 text-[12px]"><th rowspan="2" width="8%">日期</th><th rowspan="2" width="8%">星期</th><th width="14%">30000聲</th><th width="14%">120分</th><th width="14%">60分</th><th width="14%">60分</th><th rowspan="2" width="28%">心 得</th></tr><tr class="bg-gray-50 text-[12px]"><th>念佛(聲)</th><th>打坐(分)</th><th>拜懺(分)</th><th>動禪(分)</th></tr>`;
+            let html = ""; let sums = { '念佛': 0, '打坐': 0, '拜懺': 0, '動禪': 0 };
             for(let d=1; d<=days; d++) {
                 const ds = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const wk = weekNames[new Date(y, m-1, d).getDay()];
                 const dayData = db.filter(i => i.date === ds);
-                const getVal = (c) => { 
-                    const v = dayData.filter(i => i.category === c).reduce((a, b) => a + b.value, 0);
-                    sums[c] += v; return v || "";
-                };
+                const getVal = (c) => { const v = dayData.filter(i => i.category === c).reduce((a, b) => a + b.value, 0); sums[c] += v; return v || ""; };
                 html += `<tr><td>${d}</td><td>(${wk})</td><td>${getVal('念佛')}</td><td>${getVal('打坐')}</td><td>${getVal('拜懺')}</td><td>${getVal('動禪')}</td><td class="p-0"><input type="text" class="cell-input" value="${noteDB[ds]||''}" oninput="saveNote('${ds}', this.value)"></td></tr>`;
             }
             document.getElementById('tableBody').innerHTML = html;
-
             let totalRateSum = 0;
             const avgCells = ['念佛', '打坐', '拜懺', '動禪'].map(c => {
                 const avg = Math.round(sums[c] / days);
                 const rate = Math.min(100, Math.round((avg / targets[c]) * 100));
-                totalRateSum += rate;
-                return { avg, rate };
+                totalRateSum += rate; return { avg, rate };
             });
-
-            document.getElementById('tableFoot').innerHTML = `
-                <tbody class="text-[14px] font-bold">
-                    <tr><td colspan="2" class="h-10 text-[12px]">日平均</td><td>${avgCells[0].avg}</td><td>${avgCells[1].avg}</td><td>${avgCells[2].avg}</td><td>${avgCells[3].avg}</td><td class="text-center text-[10px] leading-tight">平均達成率% (a+b+c+d)/4</td></tr>
-                    <tr><td colspan="2" class="h-10 text-[12px]">達成率%</td><td>${avgCells[0].rate}%</td><td>${avgCells[1].rate}%</td><td>${avgCells[2].rate}%</td><td>${avgCells[3].rate}%</td><td class="text-xl">${Math.round(totalRateSum / 4)}%</td></tr>
-                    <tr><td colspan="2" class="h-10 text-[12px]">講師核閱</td><td colspan="5"></td></tr>
-                </tbody>`;
+            document.getElementById('tableFoot').innerHTML = `<tbody class="text-[14px] font-bold"><tr><td colspan="2" class="h-10 text-[12px]">日平均</td><td>${avgCells[0].avg}</td><td>${avgCells[1].avg}</td><td>${avgCells[2].avg}</td><td>${avgCells[3].avg}</td><td class="text-center text-[10px] leading-tight">平均達成率%</td></tr><tr><td colspan="2" class="h-10 text-[12px]">達成率%</td><td>${avgCells[0].rate}%</td><td>${avgCells[1].rate}%</td><td>${avgCells[2].rate}%</td><td>${avgCells[3].rate}%</td><td class="text-xl">${Math.round(totalRateSum / 4)}%</td></tr><tr><td colspan="2" class="h-10 text-[12px]">講師核閱</td><td colspan="5"></td></tr></tbody>`;
         }
         function saveNote(date, val) { noteDB[date] = val; localStorage.setItem('noteDB', JSON.stringify(noteDB)); }
     </script>
