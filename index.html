@@ -3,72 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>佛乘宗修行功課表 v3.5</title>
+    <title>佛乘宗修行功課表 v3.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .heavy-table { border: 2.5px solid black !important; border-collapse: collapse; width: 100%; table-layout: fixed; }
-        .heavy-table th, .heavy-table td { border: 1.5px solid black !important; padding: 0; text-align: center; color: black; font-weight: 600; }
+        .heavy-table { border: 2px solid black !important; border-collapse: collapse; width: 100%; table-layout: fixed; }
+        .heavy-table th, .heavy-table td { border: 1.2px solid black !important; padding: 0; text-align: center; color: black; font-weight: 600; }
         
+        /* 核心修復：極致壓縮同一列 */
+        .info-row { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: flex-end; width: 100%; font-size: 13px; font-weight: bold; color: black; padding: 0 2px; }
+        .info-input { border: none; border-bottom: 1px solid black; background: transparent; text-align: center; outline: none; padding: 0; margin: 0; width: 100%; min-width: 0; }
+        .info-box { display: flex; align-items: flex-end; white-space: nowrap; overflow: hidden; }
+
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; margin: 0; padding: 0; }
             #reportPage { display: block !important; position: static; }
-            #printArea { width: 100%; max-width: 100%; margin: 0; padding: 0.3cm; }
+            #printArea { width: 100%; margin: 0; padding: 0.2cm; }
             @page { size: A4; margin: 0.5cm; }
-            .cell-input { border: none !important; }
-            input { border-bottom: 1px solid black !important; }
         }
 
-        .cell-input { width: 100%; height: 23px; border: none; outline: none; text-align: center; font-size: 13px; background: transparent; }
-        .cell-input:focus { background-color: #f0f9ff; }
-        .archive-card { border-left: 5px solid #6366f1; }
+        .cell-input { width: 100%; height: 24px; border: none; outline: none; text-align: center; font-size: 13px; background: transparent; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
 
     <div id="mainPage" class="p-5 max-w-md mx-auto no-print">
-        <header class="py-6 text-center">
+        <header class="py-4 text-center">
             <h1 class="text-2xl font-black text-slate-800">修行功課隨手記</h1>
-            <p id="todayDateStr" class="text-indigo-600 text-sm font-bold mt-1"></p>
+            <p id="todayDateStr" class="text-indigo-600 text-xs font-bold"></p>
         </header>
 
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <button onclick="quickInput('念佛')" class="py-7 bg-orange-500 text-white rounded-3xl shadow-lg font-bold text-xl active:scale-95 transition-transform">念佛</button>
-            <button onclick="quickInput('打坐')" class="py-7 bg-blue-500 text-white rounded-3xl shadow-lg font-bold text-xl active:scale-95 transition-transform">打坐</button>
-            <button onclick="quickInput('拜懺')" class="py-7 bg-emerald-600 text-white rounded-3xl shadow-lg font-bold text-xl active:scale-95 transition-transform">拜懺</button>
-            <button onclick="quickInput('動禪')" class="py-7 bg-violet-500 text-white rounded-3xl shadow-lg font-bold text-xl active:scale-95 transition-transform">動禪</button>
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <button onclick="quickInput('念佛')" class="py-6 bg-orange-500 text-white rounded-2xl shadow-md font-bold text-lg">念佛</button>
+            <button onclick="quickInput('打坐')" class="py-6 bg-blue-500 text-white rounded-2xl shadow-md font-bold text-lg">打坐</button>
+            <button onclick="quickInput('拜懺')" class="py-6 bg-emerald-600 text-white rounded-2xl shadow-md font-bold text-lg">拜懺</button>
+            <button onclick="quickInput('動禪')" class="py-6 bg-violet-500 text-white rounded-2xl shadow-md font-bold text-lg">動禪</button>
         </div>
 
-        <div id="todaySummary" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 grid grid-cols-2 gap-4 mb-6 text-center"></div>
+        <div id="todaySummary" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 grid grid-cols-4 gap-2 mb-6 text-center"></div>
 
-        <div class="space-y-3">
-            <button onclick="openReport()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2">
-                <span>開啟 A4 報表 / 補登</span>
-            </button>
-            <button onclick="toggleArchiveModal()" class="w-full py-3 bg-white text-indigo-600 border border-indigo-100 rounded-2xl font-bold text-sm">歷史封存管理</button>
+        <div class="space-y-2">
+            <button onclick="openReport()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold">開啟 A4 報表 / 補登</button>
+            <button onclick="toggleArchiveModal()" class="w-full py-3 bg-white text-indigo-600 border border-indigo-100 rounded-xl font-bold text-xs">歷史封存管理</button>
         </div>
     </div>
 
     <div id="reportPage" class="hidden fixed inset-0 bg-white z-50 overflow-y-auto">
-        <div class="no-print flex justify-between items-center p-3 bg-slate-900 text-white sticky top-0 shadow-lg">
-            <button onclick="closeReport()" class="px-3 py-1 bg-slate-700 rounded text-sm">返回</button>
-            <button onclick="window.print()" class="px-5 py-1.5 bg-indigo-500 rounded font-bold text-sm">列印 PDF</button>
+        <div class="no-print flex justify-between items-center p-2 bg-slate-800 text-white sticky top-0">
+            <button onclick="closeReport()" class="px-3 py-1 bg-slate-600 rounded text-xs">返回</button>
+            <button onclick="window.print()" class="px-4 py-1 bg-indigo-500 rounded font-bold text-xs">列印 PDF</button>
         </div>
 
         <div id="printArea">
-            <h2 class="text-center font-bold text-2xl mb-4 text-black tracking-widest">佛乘宗門人、學員修行功課</h2>
+            <h2 class="text-center font-bold text-xl mb-3 text-black">佛乘宗門人、學員修行功課</h2>
             
-            <div class="grid grid-cols-12 whitespace-nowrap text-[15px] mb-2 px-1 font-bold text-black items-end">
-                <div id="currentYM" class="col-span-3"></div>
-                <div class="col-span-2 text-left">
-                    組別：<input type="text" id="groupName" class="w-8 border-b border-black text-center" oninput="saveInfo('group', this.value)">
-                </div>
-                <div class="col-span-3 text-center">
-                    法號：<input type="text" id="dharmaName" class="w-18 border-b border-black text-center" oninput="saveInfo('dharma', this.value)">
-                </div>
-                <div class="col-span-4 text-right">
-                    姓名：<input type="text" id="userName" class="w-20 border-b border-black text-center" oninput="saveInfo('name', this.value)">
-                </div>
+            <div class="info-row mb-2">
+                <div id="currentYM" style="flex: 0 0 20%;"></div>
+                <div class="info-box" style="flex: 0 0 15%;">組別：<input type="text" id="groupName" class="info-input" oninput="saveInfo('group', this.value)"></div>
+                <div class="info-box" style="flex: 0 0 30%;">法號：<input type="text" id="dharmaName" class="info-input" oninput="saveInfo('dharma', this.value)"></div>
+                <div class="info-box" style="flex: 0 0 35%;">姓名：<input type="text" id="userName" class="info-input" oninput="saveInfo('name', this.value)"></div>
             </div>
 
             <table class="heavy-table text-black">
@@ -76,18 +69,16 @@
                 <tbody id="tableBody"></tbody>
                 <tbody id="tableFoot"></tbody>
             </table>
-            
-            <p class="text-[11px] mt-1 font-bold text-black">
-                備註：1. 心得欄可記錄去習氣, 修德大之情形。 2. 每日功課建議：三禪一懺為主。
-            </p>
+            <p class="text-[10px] mt-1 font-bold text-black text-right">備註：1. 心得欄可記錄去習氣情形。 2. 每日功課建議：三禪一懺為主。</p>
         </div>
     </div>
 
-    <div id="archiveListModal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4 no-print">
-        <div class="bg-white w-full max-w-md rounded-3xl p-6 max-h-[80vh] flex flex-col shadow-2xl">
-            <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-slate-800">歷史封存</h3><button onclick="toggleArchiveModal()">✕</button></div>
-            <div id="archiveContainer" class="overflow-y-auto space-y-3"></div>
-            <button onclick="archiveAllData()" class="mt-6 w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold text-sm">封存本月並清空</button>
+    <div id="archiveListModal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-4 max-h-[80vh] flex flex-col shadow-2xl">
+            <h3 class="font-bold mb-4">封存歷史與日期戳章</h3>
+            <div id="archiveContainer" class="overflow-y-auto space-y-2"></div>
+            <button onclick="archiveAllData()" class="mt-4 w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold text-xs">執行月封存並清空</button>
+            <button onclick="toggleArchiveModal()" class="mt-2 text-gray-400 text-xs text-center">關閉</button>
         </div>
     </div>
 
@@ -99,84 +90,77 @@
         const targets = { '念佛': 30000, '打坐': 120, '拜懺': 60, '動禪': 60 };
 
         window.onload = () => {
-            renderSummary();
             const now = new Date();
             document.getElementById('todayDateStr').innerText = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
             document.getElementById('groupName').value = userInfo.group || '';
             document.getElementById('dharmaName').value = userInfo.dharma || '';
             document.getElementById('userName').value = userInfo.name || '';
+            renderSummary();
         };
 
         function saveInfo(key, val) { userInfo[key] = val; localStorage.setItem('userInfo', JSON.stringify(userInfo)); }
         function toggleArchiveModal() { document.getElementById('archiveListModal').classList.toggle('hidden'); if(!document.getElementById('archiveListModal').classList.contains('hidden')) renderArchiveList(); }
 
         function updateTableValue(date, cat, val) {
-            const numVal = parseInt(val) || 0;
             db = db.filter(i => !(i.date === date && i.category === cat));
-            if(numVal > 0) db.push({ id: Date.now(), date, category: cat, value: numVal });
+            if(parseInt(val) > 0) db.push({ id: Date.now(), date, category: cat, value: parseInt(val) });
             localStorage.setItem('practiceDB', JSON.stringify(db));
-            renderTable(); renderSummary();
+            renderSummary();
         }
 
         function saveNote(date, val) { noteDB[date] = val; localStorage.setItem('noteDB', JSON.stringify(noteDB)); }
 
         function archiveAllData() {
-            if(db.length === 0 && Object.keys(noteDB).length === 0) return alert("尚無資料");
-            if(confirm("確定封存？")) {
+            if(db.length === 0 && Object.keys(noteDB).length === 0) return alert("無資料");
+            if(confirm("執行月封存並清空？")) {
                 const now = new Date();
-                const timeStamp = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
                 const stats = {};
                 ['念佛', '打坐', '拜懺', '動禪'].forEach(c => { stats[c] = db.filter(i => i.category === c).reduce((a, b) => a + b.value, 0); });
-                archiveDB.unshift({ id: Date.now(), month: `${now.getFullYear()}年${now.getMonth()+1}月`, archiveTime: timeStamp, stats });
+                archiveDB.unshift({ 
+                    id: Date.now(), 
+                    month: `${now.getFullYear()}年${now.getMonth()+1}月`, 
+                    time: `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`,
+                    stats
+                });
                 localStorage.setItem('archiveDB', JSON.stringify(archiveDB));
-                localStorage.setItem('practiceDB', JSON.stringify([]));
-                localStorage.setItem('noteDB', JSON.stringify({}));
+                localStorage.setItem('practiceDB', "[]"); localStorage.setItem('noteDB', "{}");
                 location.reload();
             }
         }
 
         function renderArchiveList() {
             const container = document.getElementById('archiveContainer');
-            if(archiveDB.length === 0) { container.innerHTML = '<div class="text-center py-10 text-gray-400">尚無紀錄</div>'; return; }
+            if(archiveDB.length === 0) { container.innerHTML = '<div class="text-center py-6 text-gray-400 text-xs">尚無紀錄</div>'; return; }
             container.innerHTML = archiveDB.map(item => `
-                <div class="archive-card p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <div class="flex justify-between items-center mb-2 font-bold text-slate-800">
-                        <span>${item.month}</span>
-                        <button onclick="deleteArchive(${item.id})" class="text-red-300 hover:text-red-500">✕</button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-500 mb-2">
-                        <span>念佛：${item.stats['念佛']}</span>
-                        <span>打坐：${item.stats['打坐']}</span>
-                        <span>拜懺：${item.stats['拜懺']}</span>
-                        <span class="text-indigo-600 font-bold">動禪：${item.stats['動禪']}</span> </div>
-                    <div class="text-[10px] text-indigo-400 bg-white border border-indigo-50 px-2 py-1 rounded inline-block">
-                        封存執行於：${item.archiveTime}
-                    </div>
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="flex justify-between font-bold text-xs"><span>${item.month}</span><button onclick="deleteArchive(${item.id})" class="text-red-300">✕</button></div>
+                    <div class="text-[10px] text-gray-500 mt-1">念:${item.stats['念佛']} | 坐:${item.stats['打坐']} | 懺:${item.stats['拜懺']} | <span class="text-indigo-600 font-bold">動:${item.stats['動禪']}</span></div>
+                    <div class="text-[9px] text-indigo-400 mt-1 font-bold">封存於：${item.time}</div>
                 </div>`).join('');
         }
 
-        function deleteArchive(id) { if(confirm("刪除此紀錄？")) { archiveDB = archiveDB.filter(i => i.id !== id); localStorage.setItem('archiveDB', JSON.stringify(archiveDB)); renderArchiveList(); } }
+        function deleteArchive(id) { if(confirm("刪除？")) { archiveDB = archiveDB.filter(i => i.id !== id); localStorage.setItem('archiveDB', JSON.stringify(archiveDB)); renderArchiveList(); } }
 
         function renderTable() {
             const now = new Date(); const y = now.getFullYear(); const m = now.getMonth() + 1;
-            document.getElementById('currentYM').innerText = `${y}年 ${String(m).padStart(2, '0')}月`;
+            document.getElementById('currentYM').innerText = `${y}年 ${m}月`;
             const days = new Date(y, m, 0).getDate();
             const weekNames = ['日', '一', '二', '三', '四', '五', '六'];
-            document.getElementById('tableHead').innerHTML = `<tr class="bg-gray-100 text-[11px]"><th rowspan="2" width="7%">日期</th><th rowspan="2" width="7%">星期</th><th width="14%">30000聲</th><th width="14%">120分</th><th width="14%">60分</th><th width="14%">60分</th><th rowspan="2" width="30%">心 得</th></tr><tr class="bg-gray-100 text-[11px]"><th>念佛(聲)</th><th>打坐(分)</th><th>拜懺(分)</th><th>動禪(分)</th></tr>`;
+            document.getElementById('tableHead').innerHTML = `<tr class="bg-gray-100 text-[10px]"><th rowspan="2" width="7%">日</th><th rowspan="2" width="7%">星</th><th width="14%">念佛</th><th width="14%">打坐</th><th width="14%">拜懺</th><th width="14%">動禪</th><th rowspan="2" width="30%">心 得</th></tr><tr class="bg-gray-100 text-[10px]"><th>(聲)</th><th>(分)</th><th>(分)</th><th>(分)</th></tr>`;
             let html = ""; let sums = { '念佛': 0, '打坐': 0, '拜懺': 0, '動禪': 0 };
             for(let d=1; d<=days; d++) {
                 const ds = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const wk = weekNames[new Date(y, m-1, d).getDay()];
                 const dayVal = (c) => { const v = db.filter(i => i.date === ds && i.category === c).reduce((a, b) => a + b.value, 0); sums[c] += v; return v || ""; };
-                html += `<tr><td>${d}</td><td>(${wk})</td><td><input type="number" class="cell-input" value="${dayVal('念佛')}" onchange="updateTableValue('${ds}', '念佛', this.value)"></td><td><input type="number" class="cell-input" value="${dayVal('打坐')}" onchange="updateTableValue('${ds}', '打坐', this.value)"></td><td><input type="number" class="cell-input" value="${dayVal('拜懺')}" onchange="updateTableValue('${ds}', '拜懺', this.value)"></td><td><input type="number" class="cell-input" value="${dayVal('動禪')}" onchange="updateTableValue('${ds}', '動禪', this.value)"></td><td><input type="text" class="cell-input !text-left px-1" value="${noteDB[ds]||''}" oninput="saveNote('${ds}', this.value)"></td></tr>`;
+                html += `<tr><td>${d}</td><td>${wk}</td><td><input type="number" class="cell-input" value="${dayVal('念佛')}" onchange="updateTableValue('${ds}', '念佛', this.value)"></td><td><input type="number" class="cell-input" value="${dayVal('打坐')}" onchange="updateTableValue('${ds}', '打坐', this.value)"></td><td><input type="number" class="cell-input" value="${dayVal('拜懺')}" onchange="updateTableValue('${ds}', '拜懺', this.value)"></td><td><input type="number" class="cell-input" value="${dayVal('動禪')}" onchange="updateTableValue('${ds}', '動禪', this.value)"></td><td><input type="text" class="cell-input !text-left px-1" value="${noteDB[ds]||''}" oninput="saveNote('${ds}', this.value)"></td></tr>`;
             }
             document.getElementById('tableBody').innerHTML = html;
             let totalRate = 0; const foot = ['念佛', '打坐', '拜懺', '動禪'].map(c => { const avg = Math.round(sums[c] / days); const rate = Math.min(100, Math.round((avg / targets[c]) * 100)); totalRate += rate; return { avg, rate }; });
-            document.getElementById('tableFoot').innerHTML = `<tr class="font-bold bg-gray-50"><td colspan="2" class="h-6 text-xs">日平均</td>${foot.map(f => `<td>${f.avg}</td>`).join('')}<td class="text-[10px]">平均達成率%</td></tr><tr class="font-bold bg-gray-50"><td colspan="2" class="h-6 text-xs">達成率%</td>${foot.map(f => `<td>${f.rate}%</td>`).join('')}<td class="text-lg">${Math.round(totalRate/4)}%</td></tr><tr><td colspan="2" class="h-8 text-sm">講師核閱</td><td colspan="5"></td></tr>`;
+            document.getElementById('tableFoot').innerHTML = `<tr class="font-bold bg-gray-50"><td colspan="2" class="h-6 text-[10px]">日平均</td>${foot.map(f => `<td class="text-[11px]">${f.avg}</td>`).join('')}<td class="text-[9px]">達成率</td></tr><tr class="font-bold bg-gray-50"><td colspan="2" class="h-6 text-[10px]">達成率%</td>${foot.map(f => `<td class="text-[11px]">${f.rate}%</td>`).join('')}<td class="text-lg">${Math.round(totalRate/4)}%</td></tr>`;
         }
 
-        function quickInput(cat) { const val = prompt(`輸入${cat}:`); if (val && !isNaN(val)) { db.push({ id: Date.now(), date: new Date().toISOString().split('T')[0], category: cat, value: parseInt(val) }); localStorage.setItem('practiceDB', JSON.stringify(db)); renderSummary(); } }
-        function renderSummary() { const today = new Date().toISOString().split('T')[0]; document.getElementById('todaySummary').innerHTML = ['念佛', '打坐', '拜懺', '動禪'].map(c => { const sum = db.filter(i => i.date === today && i.category === c).reduce((a, b) => a + b.value, 0); return `<div class="flex flex-col"><span class="text-slate-400 text-[10px] font-bold">${c}</span><span class="text-xl font-black text-slate-800">${sum}</span></div>`; }).join(''); }
+        function quickInput(cat) { const val = prompt(`輸入今日${cat}:`); if (val && !isNaN(val)) { db.push({ id: Date.now(), date: new Date().toISOString().split('T')[0], category: cat, value: parseInt(val) }); localStorage.setItem('practiceDB', JSON.stringify(db)); renderSummary(); } }
+        function renderSummary() { const today = new Date().toISOString().split('T')[0]; document.getElementById('todaySummary').innerHTML = ['念佛', '打坐', '拜懺', '動禪'].map(c => { const sum = db.filter(i => i.date === today && i.category === c).reduce((a, b) => a + b.value, 0); return `<div class="flex flex-col"><span class="text-slate-400 text-[9px] font-bold">${c}</span><span class="text-sm font-black text-slate-800">${sum}</span></div>`; }).join(''); }
         function openReport() { renderTable(); document.getElementById('reportPage').classList.remove('hidden'); }
         function closeReport() { document.getElementById('reportPage').classList.add('hidden'); }
     </script>
