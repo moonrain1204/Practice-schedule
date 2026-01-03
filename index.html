@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>佛乘宗修行功課表 v3.9</title>
+    <title>佛乘宗修行功課表 v4.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .heavy-table { border: 2px solid black !important; border-collapse: collapse; width: 100%; table-layout: fixed; }
@@ -42,22 +42,22 @@
         </header>
 
         <div class="grid grid-cols-2 gap-3 mb-6">
-            <button onclick="quickInput('念佛')" class="py-6 bg-orange-600 text-white rounded-2xl shadow-lg font-bold text-lg">念佛</button>
-            <button onclick="quickInput('打坐')" class="py-6 bg-blue-600 text-white rounded-2xl shadow-lg font-bold text-lg">打坐</button>
-            <button onclick="quickInput('拜懺')" class="py-6 bg-emerald-700 text-white rounded-2xl shadow-lg font-bold text-lg">拜懺</button>
-            <button onclick="quickInput('動禪')" class="py-6 bg-violet-600 text-white rounded-2xl shadow-lg font-bold text-lg">動禪</button>
+            <button onclick="quickInput('念佛')" class="py-6 bg-orange-600 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95 transition-all">念佛</button>
+            <button onclick="quickInput('打坐')" class="py-6 bg-blue-600 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95 transition-all">打坐</button>
+            <button onclick="quickInput('拜懺')" class="py-6 bg-emerald-700 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95 transition-all">拜懺</button>
+            <button onclick="quickInput('動禪')" class="py-6 bg-violet-600 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95 transition-all">動禪</button>
         </div>
 
         <div id="todaySummary" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 grid grid-cols-4 gap-2 mb-6 text-center"></div>
 
         <div class="space-y-3">
-            <button onclick="openReport()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold">開啟 A4 報表 / 補登</button>
+            <button onclick="openReport()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-md">開啟 A4 報表 / 補登</button>
             <button onclick="toggleArchiveModal()" class="w-full py-3 bg-white text-slate-500 border border-slate-200 rounded-xl font-bold text-xs">歷史封存管理</button>
         </div>
     </div>
 
     <div id="reportPage" class="hidden fixed inset-0 bg-white z-50 overflow-y-auto">
-        <div class="no-print flex justify-between items-center p-3 bg-slate-800 text-white sticky top-0">
+        <div class="no-print flex justify-between items-center p-3 bg-slate-800 text-white sticky top-0 shadow-md">
             <button onclick="closeReport()" class="px-4 py-1 bg-slate-600 rounded-lg text-sm">返回</button>
             <button onclick="window.print()" class="px-5 py-1 bg-indigo-500 rounded-lg font-bold text-sm">列印 PDF</button>
         </div>
@@ -77,15 +77,23 @@
                 <tbody id="tableBody"></tbody>
                 <tbody id="tableFoot"></tbody>
             </table>
-            <p class="text-[10px] font-bold text-black mt-1">備註：1. 心得欄可記錄去習氣情形。 2. 每日功課建議：三禪一懺為主。</p>
+            
+            <div class="flex justify-between items-start mt-1">
+                <p class="text-[10px] font-bold text-black">
+                    備註：1. 心得欄可記錄去習氣情形。 2. 每日功課建議：三禪一懺為主。
+                </p>
+                <p class="text-[9px] text-gray-400 font-bold">ver 4.0</p>
+            </div>
         </div>
     </div>
 
-    <div id="archiveListModal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4">
+    <div id="archiveListModal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4 no-print">
         <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
-            <h3 class="font-black text-lg mb-4">歷史封存紀錄</h3>
+            <h3 class="font-black text-lg mb-4 text-slate-800">歷史封存紀錄</h3>
             <div id="archiveContainer" class="space-y-3 max-h-[50vh] overflow-y-auto"></div>
-            <button onclick="archiveAllData()" class="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl font-bold text-sm mt-4">執行月封存並清空數據</button>
+            <hr class="my-4">
+            <button onclick="archiveAllData()" class="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl font-bold text-sm">封存本月資料並清空</button>
+            <button onclick="toggleArchiveModal()" class="w-full mt-2 py-2 text-slate-400 text-xs text-center">關閉</button>
         </div>
     </div>
 
@@ -117,30 +125,48 @@
 
         function saveNote(date, val) { noteDB[date] = val; localStorage.setItem('noteDB_v3', JSON.stringify(noteDB)); }
 
+        // 確實封存所有三禪一懺數據
         function archiveAllData() {
-            if(db.length === 0) return alert("無數據");
-            if(confirm("確定封存？")) {
+            if(db.length === 0 && Object.keys(noteDB).length === 0) return alert("尚無數據可封存");
+            if(confirm("確定要將本月【三禪一懺】所有數據及心得封存嗎？執行後將清空目前表格。")) {
                 const now = new Date();
                 const stats = {};
-                ['念佛', '打坐', '拜懺', '動禪'].forEach(c => { stats[c] = db.filter(i => i.category === c).reduce((a, b) => a + b.value, 0); });
-                archiveDB.unshift({ id: Date.now(), month: `${now.getFullYear()}年${now.getMonth()+1}月修行`, time: `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`, stats });
+                ['念佛', '打坐', '拜懺', '動禪'].forEach(c => { 
+                    stats[c] = db.filter(i => i.category === c).reduce((a, b) => a + b.value, 0); 
+                });
+                
+                archiveDB.unshift({
+                    id: Date.now(),
+                    month: `${now.getFullYear()}年${now.getMonth()+1}月修行紀錄`,
+                    time: `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`,
+                    stats,
+                    notes: JSON.parse(JSON.stringify(noteDB)) // 確實封存心得
+                });
+                
                 localStorage.setItem('archiveDB_v3', JSON.stringify(archiveDB));
-                localStorage.setItem('practiceDB_v3', "[]"); localStorage.setItem('noteDB_v3', "{}");
+                localStorage.setItem('practiceDB_v3', "[]");
+                localStorage.setItem('noteDB_v3', "{}");
+                alert("封存成功！");
                 location.reload();
             }
         }
 
         function renderArchiveList() {
             const container = document.getElementById('archiveContainer');
-            if(archiveDB.length === 0) { container.innerHTML = '<p class="text-center text-slate-400">尚無紀錄</p>'; return; }
+            if(archiveDB.length === 0) { container.innerHTML = '<p class="text-center text-slate-400 py-6 text-sm">尚無封存紀錄</p>'; return; }
             container.innerHTML = archiveDB.map(item => `
-                <div class="p-4 bg-slate-50 rounded-2xl border text-xs">
-                    <div class="flex justify-between font-bold"><span>${item.month}</span><button onclick="deleteArchive(${item.id})">✕</button></div>
-                    <div class="mt-2 text-slate-500">動禪：${item.stats['動禪']} | 封存：${item.time}</div>
+                <div class="p-4 bg-slate-50 rounded-2xl border text-xs relative">
+                    <button onclick="deleteArchive(${item.id})" class="absolute top-3 right-3 text-red-300">✕</button>
+                    <div class="font-bold text-slate-800 mb-2">${item.month}</div>
+                    <div class="grid grid-cols-2 gap-1 text-slate-500 mb-2">
+                        <span>念佛：${item.stats['念佛']}</span> <span>打坐：${item.stats['打坐']}</span>
+                        <span>拜懺：${item.stats['拜懺']}</span> <span class="text-indigo-600 font-bold">動禪：${item.stats['動禪']}</span>
+                    </div>
+                    <div class="text-[9px] text-slate-400">封存時間：${item.time}</div>
                 </div>`).join('');
         }
 
-        function deleteArchive(id) { if(confirm("刪除？")) { archiveDB = archiveDB.filter(i => i.id !== id); localStorage.setItem('archiveDB_v3', JSON.stringify(archiveDB)); renderArchiveList(); } }
+        function deleteArchive(id) { if(confirm("確定刪除此封存紀錄？")) { archiveDB = archiveDB.filter(i => i.id !== id); localStorage.setItem('archiveDB_v3', JSON.stringify(archiveDB)); renderArchiveList(); } }
 
         function renderTable() {
             const now = new Date(); const y = now.getFullYear(); const m = now.getMonth() + 1;
@@ -159,7 +185,6 @@
             }
             document.getElementById('tableBody').innerHTML = html;
             
-            // 核心修正：計算並呈現數值
             let totalRateSum = 0;
             const rates = ['念佛', '打坐', '拜懺', '動禪'].map(c => {
                 const avg = Math.round(sums[c] / days);
@@ -167,7 +192,7 @@
                 totalRateSum += rate;
                 return { avg, rate };
             });
-            const finalAvgRate = Math.round(totalRateSum / 4); // 直接算出總平均數值
+            const finalAvgRate = Math.round(totalRateSum / 4);
 
             document.getElementById('tableFoot').innerHTML = `
                 <tr class="bg-slate-50 font-bold">
@@ -183,9 +208,10 @@
         }
 
         function quickInput(cat) {
-            const val = prompt(`輸入${cat}：`);
+            const val = prompt(`輸入今日【${cat}】數值：`);
             if (val !== null && !isNaN(val) && val !== "") {
-                db.push({ date: new Date().toISOString().split('T')[0], category: cat, value: parseInt(val) });
+                const today = new Date().toISOString().split('T')[0];
+                db.push({ date: today, category: cat, value: parseInt(val) });
                 localStorage.setItem('practiceDB_v3', JSON.stringify(db));
                 renderSummary();
             }
