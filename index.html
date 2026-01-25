@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>佛乘宗門人、學員修行功課表 v5.4</title>
+    <title>佛乘宗門人、學員修行功課表 v5.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .heavy-table { border: 2px solid black !important; border-collapse: collapse; width: 100%; table-layout: fixed; background: white; }
@@ -69,12 +69,12 @@
             <button onclick="toggleArchiveModal()" class="w-full py-3 bg-white text-slate-400 border border-slate-200 rounded-2xl font-bold text-sm">歷史封存管理</button>
         </div>
 
-        <div class="fixed bottom-4 left-4 text-slate-300 text-[10px] font-mono font-bold">Version 5.4</div>
+        <div class="fixed bottom-4 left-4 text-slate-300 text-[10px] font-mono font-bold">Version 5.5</div>
     </div>
 
     <div id="timerModal" class="fixed inset-0 bg-black/80 z-[150] hidden flex items-center justify-center p-6 no-print">
         <div class="bg-white w-full max-w-xs rounded-[2rem] p-8 text-center shadow-2xl">
-            <h3 id="timerTitle" class="text-xl font-black mb-2 text-slate-800">打坐計時</h3>
+            <h3 id="timerTitle" class="text-xl font-black mb-2 text-slate-800">計時器</h3>
             <div id="timerDisplay" class="text-5xl font-mono font-black py-8 text-indigo-600">00:00:00</div>
             
             <div class="grid grid-cols-2 gap-3 mb-6">
@@ -85,7 +85,7 @@
             <div class="border-t border-slate-100 pt-4 mt-2">
                 <p class="text-xs text-slate-400 mb-2">或是手動輸入分鐘數：</p>
                 <input type="number" id="manualMinutes" placeholder="分鐘" class="w-full bg-slate-50 border-none rounded-xl py-3 text-center font-bold mb-3">
-                <button onclick="saveManual()" class="w-full text-slate-500 font-bold text-sm py-2">保存並關閉</button>
+                <button id="closeTimerBtn" onclick="closeTimer()" class="w-full text-slate-500 font-bold text-sm py-2">取消並關閉</button>
             </div>
         </div>
     </div>
@@ -95,7 +95,6 @@
             <button onclick="closeReport()" class="px-4 py-1 bg-slate-600 rounded-lg text-sm font-bold">返回</button>
             <button onclick="window.print()" class="px-5 py-1 bg-indigo-500 rounded-lg font-bold text-sm">列印 PDF</button>
         </div>
-        
         <div id="printArea" class="mx-auto max-w-[21cm] p-2">
             <h2 class="text-center font-bold text-xl mb-3 text-black pt-1">佛乘宗門人、學員修行功課表</h2>
             <div class="info-header">
@@ -105,18 +104,13 @@
                 <div class="info-item"><span class="info-label">姓名：</span><input type="text" id="userName" class="info-input" oninput="saveInfo('name', this.value)"></div>
             </div>
             <table class="heavy-table">
-                <thead>
-                    <tr class="bg-gray-100 text-[10px]">
-                        <th width="7%">日期</th><th width="8%">星期</th>
-                        <th>30000聲<br>念佛(聲)</th><th>120分<br>打坐(分)</th><th>60分<br>拜懺(分)</th><th>60分<br>動禪(分)</th><th width="25%">心得</th>
-                    </tr>
-                </thead>
+                <thead><tr class="bg-gray-100 text-[10px]"><th width="7%">日期</th><th width="8%">星期</th><th>30000聲<br>念佛(聲)</th><th>120分<br>打坐(分)</th><th>60分<br>拜懺(分)</th><th>60分<br>動禪(分)</th><th width="25%">心得</th></tr></thead>
                 <tbody id="tableBody"></tbody>
                 <tbody id="tableFoot"></tbody>
             </table>
             <div class="text-[9px] font-bold text-black mt-1 px-2 flex justify-between">
                 <span>備註：1. 心得可記錄去習氣。 2. 每日功課建議：三禪一懺為主。</span>
-                <span class="italic text-gray-400 text-[8px]">v5.4 stable</span>
+                <span class="italic text-gray-400 text-[8px]">v5.5 stable</span>
             </div>
         </div>
     </div>
@@ -137,8 +131,9 @@
         let userInfo = JSON.parse(localStorage.getItem('userInfo_v53')) || {group:'', dharma:'', name:''};
         const targets = { '念佛': 30000, '打坐': 120, '拜懺': 60, '動禪': 60 };
 
-        // 計時器相關變數
-        let timerSeconds = 0;
+        // 計時器專用變數
+        let totalElapsedSeconds = 0; // 已累積秒數
+        let startTime = null;        // 本次開始的時間戳
         let timerInterval = null;
         let currentTimerCat = '';
 
@@ -151,59 +146,81 @@
             renderSummary();
         };
 
-        // --- 計時器邏輯 ---
+        // --- 強化版計時器邏輯 ---
         function openTimer(cat) {
+            if (timerInterval) { alert("計時器正在運行中！"); return; }
             currentTimerCat = cat;
-            timerSeconds = 0;
+            totalElapsedSeconds = 0;
+            startTime = null;
             document.getElementById('timerTitle').innerText = `${cat}計時`;
             document.getElementById('timerDisplay').innerText = "00:00:00";
-            document.getElementById('manualMinutes').value = "";
+            document.getElementById('startPauseBtn').innerText = "開始";
+            document.getElementById('startPauseBtn').className = "py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg";
             document.getElementById('timerModal').classList.remove('hidden');
         }
 
         function toggleTimer() {
             const btn = document.getElementById('startPauseBtn');
-            if (timerInterval) {
+            if (startTime) {
+                // 暫停：計算當前累積
+                totalElapsedSeconds += Math.floor((Date.now() - startTime) / 1000);
+                startTime = null;
                 clearInterval(timerInterval);
                 timerInterval = null;
                 btn.innerText = "繼續";
-                btn.classList.replace('bg-slate-400', 'bg-indigo-600');
+                btn.className = "py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg";
             } else {
+                // 開始或繼續
+                startTime = Date.now();
                 btn.innerText = "暫停";
-                btn.classList.replace('bg-indigo-600', 'bg-slate-400');
-                timerInterval = setInterval(() => {
-                    timerSeconds++;
-                    const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
-                    const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
-                    const s = String(timerSeconds % 60).padStart(2, '0');
-                    document.getElementById('timerDisplay').innerText = `${h}:${m}:${s}`;
-                }, 1000);
+                btn.className = "py-4 bg-slate-400 text-white rounded-2xl font-bold shadow-lg";
+                
+                timerInterval = setInterval(updateDisplay, 200); // 頻繁刷新以確保流暢
             }
+        }
+
+        function updateDisplay() {
+            let currentSessionSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+            let displaySecs = totalElapsedSeconds + currentSessionSeconds;
+            
+            const h = String(Math.floor(displaySecs / 3600)).padStart(2, '0');
+            const m = String(Math.floor((displaySecs % 3600) / 60)).padStart(2, '0');
+            const s = String(displaySecs % 60).padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${h}:${m}:${s}`;
         }
 
         function stopTimer() {
-            if (timerSeconds < 60 && timerSeconds > 0) {
+            let currentSessionSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+            let finalSecs = totalElapsedSeconds + currentSessionSeconds;
+            
+            if (finalSecs < 60 && finalSecs > 0) {
                 if (!confirm("用時不足1分鐘，將不被記錄。確定停止？")) return;
             }
-            const mins = Math.floor(timerSeconds / 60);
-            if (mins > 0) saveToDB(currentTimerCat, mins);
-            closeTimer();
+            
+            const mins = Math.floor(finalSecs / 60);
+            if (mins > 0) {
+                saveToDB(currentTimerCat, mins);
+                alert(`已記錄 ${mins} 分鐘`);
+            }
+            forceResetTimer();
         }
 
-        function saveManual() {
-            const val = document.getElementById('manualMinutes').value;
-            if (val && !isNaN(val) && val > 0) saveToDB(currentTimerCat, parseInt(val));
-            closeTimer();
-        }
-
-        function closeTimer() {
+        function forceResetTimer() {
             clearInterval(timerInterval);
             timerInterval = null;
-            document.getElementById('startPauseBtn').innerText = "開始";
+            startTime = null;
+            totalElapsedSeconds = 0;
             document.getElementById('timerModal').classList.add('hidden');
         }
 
-        // --- 核心邏輯 ---
+        function closeTimer() {
+            if (startTime || totalElapsedSeconds > 0) {
+                if (!confirm("計時尚未完成，確定要取消嗎？數據不會被保存。")) return;
+            }
+            forceResetTimer();
+        }
+
+        // --- 核心保存與報表邏輯 (保持原有 v5.4) ---
         function saveToDB(cat, val) {
             const today = new Date().toISOString().split('T')[0];
             db.push({ date: today, category: cat, value: val });
