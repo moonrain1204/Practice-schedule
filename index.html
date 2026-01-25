@@ -158,28 +158,29 @@
             const autoValue = urlParams.get('value');
             if (autoValue && !isNaN(autoValue)) {
                 processAutoInput(parseInt(autoValue));
-                // 清除網址參數避免重複
+                // 清除網址參數避免重新整理時重複存入
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
             renderSummary();
         };
 
-        // --- 邏輯 B: 偵測 Web App postMessage 傳訊 ---
+        // --- 邏輯 B: 監聽來自 My Counter 的 postMessage 訊息 ---
         window.addEventListener('message', (event) => {
-            // 安全檢查：僅接受來自計數器域名
+            // 安全檢查：建議鎖定來源域名
             if (event.origin !== "https://moonrain1204.github.io") return;
             
-            // 假設傳來的格式是 { type: 'count_result', value: 10800 }
-            if (event.data && event.data.type === 'count_result') {
+            // 接收格式範例：{ type: 'sync_count', value: 1000 }
+            if (event.data && event.data.type === 'sync_count') {
                 processAutoInput(event.data.value);
             }
         });
 
+        // 統一處理自動輸入的函數
         function processAutoInput(val) {
             if (val > 0) {
                 saveToDB('念佛', val);
-                alert(`成功接收 My Counter 數值：${val}`);
+                alert(`成功接收計數器數值：${val} 聲`);
             }
         }
 
