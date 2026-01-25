@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>佛乘宗門人、學員修行功課表 v5.8</title>
+    <title>佛乘宗門人、學員修行功課表 v5.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .heavy-table { border: 2px solid black !important; border-collapse: collapse; width: 100%; table-layout: fixed; background: white; }
@@ -76,7 +76,7 @@
             </a>
         </div>
 
-        <div class="fixed bottom-4 left-4 text-slate-300 text-[10px] font-mono font-bold">Version 5.8</div>
+        <div class="fixed bottom-4 left-4 text-slate-300 text-[10px] font-mono font-bold">Version 5.9</div>
     </div>
 
     <div id="timerModal" class="fixed inset-0 bg-black/80 z-[150] hidden flex items-center justify-center p-6 no-print">
@@ -120,7 +120,7 @@
             </table>
             <div class="text-[9px] font-bold text-black mt-1 px-2 flex justify-between">
                 <span>備註：1. 心得可記錄去習氣。 2. 每日功課建議：三禪一懺為主。</span>
-                <span class="italic text-gray-400 text-[8px]">v5.8 stable</span>
+                <span class="italic text-gray-400 text-[8px]">v5.9 stable</span>
             </div>
         </div>
     </div>
@@ -153,18 +153,35 @@
             document.getElementById('dharmaName').value = userInfo.dharma || '';
             document.getElementById('userName').value = userInfo.name || '';
             
-            // --- 自動輸入功能偵測 ---
+            // --- 邏輯 A: 偵測網址 URL 參數 (?value=xxxx) ---
             const urlParams = new URLSearchParams(window.location.search);
             const autoValue = urlParams.get('value');
             if (autoValue && !isNaN(autoValue)) {
-                saveToDB('念佛', parseInt(autoValue));
-                alert(`已自動匯入念佛數值：${autoValue}`);
-                // 匯入後清除網址參數，避免重整頁面重複存入
+                processAutoInput(parseInt(autoValue));
+                // 清除網址參數避免重複
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
             renderSummary();
         };
+
+        // --- 邏輯 B: 偵測 Web App postMessage 傳訊 ---
+        window.addEventListener('message', (event) => {
+            // 安全檢查：僅接受來自計數器域名
+            if (event.origin !== "https://moonrain1204.github.io") return;
+            
+            // 假設傳來的格式是 { type: 'count_result', value: 10800 }
+            if (event.data && event.data.type === 'count_result') {
+                processAutoInput(event.data.value);
+            }
+        });
+
+        function processAutoInput(val) {
+            if (val > 0) {
+                saveToDB('念佛', val);
+                alert(`成功接收 My Counter 數值：${val}`);
+            }
+        }
 
         // --- 計時器與手動輸入邏輯 ---
         function openTimer(cat) {
@@ -348,6 +365,7 @@
             db = db.filter(i => !(i.date === d && i.category === c)); 
             if(v && v >= 0) db.push({ date: d, category: c, value: parseInt(v) }); 
             localStorage.setItem('practiceDB_v53', JSON.stringify(db)); 
+            renderSummary();
             renderTable();
         }
         function saveNote(d, v) { noteDB[d] = v; localStorage.setItem('noteDB_v53', JSON.stringify(noteDB)); }
