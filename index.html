@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>佛乘宗門人、學員修行功課表 v5.3</title>
+    <title>佛乘宗門人、學員修行功課表 v5.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .heavy-table { border: 2px solid black !important; border-collapse: collapse; width: 100%; table-layout: fixed; background: white; }
         .heavy-table th, .heavy-table td { border: 1px solid black !important; padding: 0; text-align: center; color: black; font-weight: bold; height: 26px; font-size: 12px; }
         
-        /* 報表頂部資訊欄：強制同一列橫向排列 */
         .info-header { 
             display: flex; 
-            flex-direction: row; /* 強制橫向 */
+            flex-direction: row; 
             justify-content: space-between; 
             align-items: center; 
             width: 100%; 
@@ -21,7 +20,7 @@
             color: black; 
             padding: 4px 2px; 
             gap: 10px;
-            white-space: nowrap; /* 禁止文字換行 */
+            white-space: nowrap; 
         }
         .info-item { display: flex; align-items: center; flex: 1; }
         .info-label { flex-shrink: 0; }
@@ -58,9 +57,9 @@
 
         <div class="grid grid-cols-2 gap-3 mb-6">
             <button onclick="quickInput('念佛')" class="py-6 bg-orange-600 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95">念佛</button>
-            <button onclick="quickInput('打坐')" class="py-6 bg-blue-600 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95">打坐</button>
-            <button onclick="quickInput('拜懺')" class="py-6 bg-emerald-700 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95">拜懺</button>
-            <button onclick="quickInput('動禪')" class="py-6 bg-violet-600 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95">動禪</button>
+            <button onclick="openTimer('打坐')" class="py-6 bg-blue-600 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95">打坐</button>
+            <button onclick="openTimer('拜懺')" class="py-6 bg-emerald-700 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95">拜懺</button>
+            <button onclick="openTimer('動禪')" class="py-6 bg-violet-600 text-white rounded-2xl shadow-lg font-bold text-lg active:scale-95">動禪</button>
         </div>
 
         <div id="todaySummary" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 grid grid-cols-4 gap-2 mb-8 text-center font-bold"></div>
@@ -70,7 +69,25 @@
             <button onclick="toggleArchiveModal()" class="w-full py-3 bg-white text-slate-400 border border-slate-200 rounded-2xl font-bold text-sm">歷史封存管理</button>
         </div>
 
-        <div class="fixed bottom-4 left-4 text-slate-300 text-[10px] font-mono font-bold">Version 5.3</div>
+        <div class="fixed bottom-4 left-4 text-slate-300 text-[10px] font-mono font-bold">Version 5.4</div>
+    </div>
+
+    <div id="timerModal" class="fixed inset-0 bg-black/80 z-[150] hidden flex items-center justify-center p-6 no-print">
+        <div class="bg-white w-full max-w-xs rounded-[2rem] p-8 text-center shadow-2xl">
+            <h3 id="timerTitle" class="text-xl font-black mb-2 text-slate-800">打坐計時</h3>
+            <div id="timerDisplay" class="text-5xl font-mono font-black py-8 text-indigo-600">00:00:00</div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <button id="startPauseBtn" onclick="toggleTimer()" class="py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg">開始</button>
+                <button onclick="stopTimer()" class="py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg">停止記錄</button>
+            </div>
+            
+            <div class="border-t border-slate-100 pt-4 mt-2">
+                <p class="text-xs text-slate-400 mb-2">或是手動輸入分鐘數：</p>
+                <input type="number" id="manualMinutes" placeholder="分鐘" class="w-full bg-slate-50 border-none rounded-xl py-3 text-center font-bold mb-3">
+                <button onclick="saveManual()" class="w-full text-slate-500 font-bold text-sm py-2">保存並關閉</button>
+            </div>
+        </div>
     </div>
 
     <div id="reportPage" class="hidden fixed inset-0 bg-white z-50 overflow-y-auto">
@@ -81,14 +98,12 @@
         
         <div id="printArea" class="mx-auto max-w-[21cm] p-2">
             <h2 class="text-center font-bold text-xl mb-3 text-black pt-1">佛乘宗門人、學員修行功課表</h2>
-            
             <div class="info-header">
                 <div id="currentYM" class="flex-shrink-0">2026年 01月</div>
                 <div class="info-item"><span class="info-label">組別：</span><input type="text" id="groupName" class="info-input" oninput="saveInfo('group', this.value)"></div>
                 <div class="info-item"><span class="info-label">法號：</span><input type="text" id="dharmaName" class="info-input" oninput="saveInfo('dharma', this.value)"></div>
                 <div class="info-item"><span class="info-label">姓名：</span><input type="text" id="userName" class="info-input" oninput="saveInfo('name', this.value)"></div>
             </div>
-
             <table class="heavy-table">
                 <thead>
                     <tr class="bg-gray-100 text-[10px]">
@@ -101,7 +116,7 @@
             </table>
             <div class="text-[9px] font-bold text-black mt-1 px-2 flex justify-between">
                 <span>備註：1. 心得可記錄去習氣。 2. 每日功課建議：三禪一懺為主。</span>
-                <span class="italic text-gray-400 text-[8px]">v5.3 stable</span>
+                <span class="italic text-gray-400 text-[8px]">v5.4 stable</span>
             </div>
         </div>
     </div>
@@ -116,12 +131,16 @@
     </div>
 
     <script>
-        // 數據存儲鍵名
         let db = JSON.parse(localStorage.getItem('practiceDB_v53')) || [];
         let noteDB = JSON.parse(localStorage.getItem('noteDB_v53')) || {};
         let archiveDB = JSON.parse(localStorage.getItem('archiveDB_v53')) || [];
         let userInfo = JSON.parse(localStorage.getItem('userInfo_v53')) || {group:'', dharma:'', name:''};
         const targets = { '念佛': 30000, '打坐': 120, '拜懺': 60, '動禪': 60 };
+
+        // 計時器相關變數
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let currentTimerCat = '';
 
         window.onload = () => {
             const now = new Date();
@@ -131,6 +150,71 @@
             document.getElementById('userName').value = userInfo.name || '';
             renderSummary();
         };
+
+        // --- 計時器邏輯 ---
+        function openTimer(cat) {
+            currentTimerCat = cat;
+            timerSeconds = 0;
+            document.getElementById('timerTitle').innerText = `${cat}計時`;
+            document.getElementById('timerDisplay').innerText = "00:00:00";
+            document.getElementById('manualMinutes').value = "";
+            document.getElementById('timerModal').classList.remove('hidden');
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('startPauseBtn');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                btn.innerText = "繼續";
+                btn.classList.replace('bg-slate-400', 'bg-indigo-600');
+            } else {
+                btn.innerText = "暫停";
+                btn.classList.replace('bg-indigo-600', 'bg-slate-400');
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
+                    const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
+                    const s = String(timerSeconds % 60).padStart(2, '0');
+                    document.getElementById('timerDisplay').innerText = `${h}:${m}:${s}`;
+                }, 1000);
+            }
+        }
+
+        function stopTimer() {
+            if (timerSeconds < 60 && timerSeconds > 0) {
+                if (!confirm("用時不足1分鐘，將不被記錄。確定停止？")) return;
+            }
+            const mins = Math.floor(timerSeconds / 60);
+            if (mins > 0) saveToDB(currentTimerCat, mins);
+            closeTimer();
+        }
+
+        function saveManual() {
+            const val = document.getElementById('manualMinutes').value;
+            if (val && !isNaN(val) && val > 0) saveToDB(currentTimerCat, parseInt(val));
+            closeTimer();
+        }
+
+        function closeTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            document.getElementById('startPauseBtn').innerText = "開始";
+            document.getElementById('timerModal').classList.add('hidden');
+        }
+
+        // --- 核心邏輯 ---
+        function saveToDB(cat, val) {
+            const today = new Date().toISOString().split('T')[0];
+            db.push({ date: today, category: cat, value: val });
+            localStorage.setItem('practiceDB_v53', JSON.stringify(db));
+            renderSummary();
+        }
+
+        function quickInput(cat) {
+            const val = prompt(`請輸入今日【${cat}】數值：`);
+            if (val !== null && !isNaN(val) && val !== "") saveToDB(cat, parseInt(val));
+        }
 
         function saveInfo(k, v) { userInfo[k] = v; localStorage.setItem('userInfo_v53', JSON.stringify(userInfo)); }
         
@@ -143,16 +227,6 @@
             }).join('');
         }
 
-        function quickInput(cat) {
-            const val = prompt(`請輸入今日【${cat}】數值：`);
-            if (val !== null && !isNaN(val) && val !== "") {
-                const today = new Date().toISOString().split('T')[0];
-                db.push({ date: today, category: cat, value: parseInt(val) });
-                localStorage.setItem('practiceDB_v53', JSON.stringify(db));
-                renderSummary();
-            }
-        }
-
         function executeArchive() {
             if(!confirm("確定要執行月封存嗎？")) return;
             const now = new Date();
@@ -163,14 +237,7 @@
                 const total = db.filter(i => i.category === c).reduce((a, b) => a + b.value, 0);
                 avgs[c] = Math.round(total / days);
             });
-            
-            archiveDB.unshift({ 
-                id: Date.now(), 
-                title: `${now.getFullYear()}年${now.getMonth()+1}月 功課存檔`, 
-                time: now.toLocaleString(),
-                averages: avgs
-            });
-            
+            archiveDB.unshift({ id: Date.now(), title: `${now.getFullYear()}年${now.getMonth()+1}月 功課存檔`, time: now.toLocaleString(), averages: avgs });
             localStorage.setItem('archiveDB_v53', JSON.stringify(archiveDB));
             db = []; noteDB = {};
             localStorage.setItem('practiceDB_v53', JSON.stringify(db));
@@ -184,15 +251,15 @@
             document.getElementById('archiveModal').classList.toggle('hidden');
             const container = document.getElementById('archiveList');
             container.innerHTML = archiveDB.length ? archiveDB.map(i => `
-                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 relative mb-3">
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 relative mb-3 text-left">
                     <button onclick="deleteArchive(${i.id})" class="absolute top-3 right-3 text-rose-400 text-[10px] font-bold">刪除</button>
                     <div class="font-bold text-slate-800 text-sm mb-1">${i.title}</div>
                     <div class="text-[9px] text-slate-400 mb-2">封存於：${i.time}</div>
                     <div class="grid grid-cols-4 gap-1 text-center bg-white p-2 rounded-xl border border-slate-50">
-                        <div class="flex flex-col"><span class="text-[8px] text-slate-400">念佛(Avg)</span><span class="text-xs font-bold text-orange-600">${i.averages?.['念佛'] || 0}</span></div>
-                        <div class="flex flex-col"><span class="text-[8px] text-slate-400">打坐(Avg)</span><span class="text-xs font-bold text-blue-600">${i.averages?.['打坐'] || 0}</span></div>
-                        <div class="flex flex-col"><span class="text-[8px] text-slate-400">拜懺(Avg)</span><span class="text-xs font-bold text-emerald-600">${i.averages?.['拜懺'] || 0}</span></div>
-                        <div class="flex flex-col"><span class="text-[8px] text-slate-400">動禪(Avg)</span><span class="text-xs font-bold text-violet-600">${i.averages?.['動禪'] || 0}</span></div>
+                        <div class="flex flex-col"><span class="text-[8px] text-slate-400">念佛</span><span class="text-xs font-bold text-orange-600">${i.averages?.['念佛'] || 0}</span></div>
+                        <div class="flex flex-col"><span class="text-[8px] text-slate-400">打坐</span><span class="text-xs font-bold text-blue-600">${i.averages?.['打坐'] || 0}</span></div>
+                        <div class="flex flex-col"><span class="text-[8px] text-slate-400">拜懺</span><span class="text-xs font-bold text-emerald-600">${i.averages?.['拜懺'] || 0}</span></div>
+                        <div class="flex flex-col"><span class="text-[8px] text-slate-400">動禪</span><span class="text-xs font-bold text-violet-600">${i.averages?.['動禪'] || 0}</span></div>
                     </div>
                 </div>
             `).join('') : '<p class="text-gray-400 text-center py-4 text-sm">尚無封存紀錄</p>';
