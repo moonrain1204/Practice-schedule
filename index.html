@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>佛乘宗門人、學員修行功課表 v5.6</title>
+    <title>佛乘宗門人、學員修行功課表 v5.8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .heavy-table { border: 2px solid black !important; border-collapse: collapse; width: 100%; table-layout: fixed; background: white; }
@@ -67,9 +67,16 @@
         <div class="space-y-4">
             <button onclick="openReport()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-md">開啟 A4 報表 / 快速補登</button>
             <button onclick="toggleArchiveModal()" class="w-full py-3 bg-white text-slate-400 border border-slate-200 rounded-2xl font-bold text-sm">歷史封存管理</button>
+            
+            <a href="https://moonrain1204.github.io/my-counter/" class="w-full flex items-center justify-center gap-2 py-3 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl font-bold text-sm hover:bg-indigo-100 transition-colors">
+                <span>前往 My Counter 計數器</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+            </a>
         </div>
 
-        <div class="fixed bottom-4 left-4 text-slate-300 text-[10px] font-mono font-bold">Version 5.6</div>
+        <div class="fixed bottom-4 left-4 text-slate-300 text-[10px] font-mono font-bold">Version 5.8</div>
     </div>
 
     <div id="timerModal" class="fixed inset-0 bg-black/80 z-[150] hidden flex items-center justify-center p-6 no-print">
@@ -113,7 +120,7 @@
             </table>
             <div class="text-[9px] font-bold text-black mt-1 px-2 flex justify-between">
                 <span>備註：1. 心得可記錄去習氣。 2. 每日功課建議：三禪一懺為主。</span>
-                <span class="italic text-gray-400 text-[8px]">v5.6 stable</span>
+                <span class="italic text-gray-400 text-[8px]">v5.8 stable</span>
             </div>
         </div>
     </div>
@@ -145,6 +152,17 @@
             document.getElementById('groupName').value = userInfo.group || '';
             document.getElementById('dharmaName').value = userInfo.dharma || '';
             document.getElementById('userName').value = userInfo.name || '';
+            
+            // --- 自動輸入功能偵測 ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const autoValue = urlParams.get('value');
+            if (autoValue && !isNaN(autoValue)) {
+                saveToDB('念佛', parseInt(autoValue));
+                alert(`已自動匯入念佛數值：${autoValue}`);
+                // 匯入後清除網址參數，避免重整頁面重複存入
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
             renderSummary();
         };
 
